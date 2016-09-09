@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <settings>
     <category label="Definições Gerais">
-        <setting label="Conta MrPiracy.club:" type="lsep" />
+        <setting label="Conta MrPiracy.win:" type="lsep" />
         <setting id="email" type="text" label="Email" default=""/>
         <setting id="password" type="text" label="Password" default="" option="hidden" enable="!eq(-1,false)"/>
         <setting type="sep" />

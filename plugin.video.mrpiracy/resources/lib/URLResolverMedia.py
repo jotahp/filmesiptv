@@ -173,9 +173,9 @@ class OpenLoad():
 				raise ResolverError('Openload.co resolve failed')
 			return videourl
 		except Exception as e:
-			self.messageOk('MrPiracy.top', 'Ocorreu um erro a obter o link. Escolha outro servidor.')
+			self.messageOk('MrPiracy.win', 'Ocorreu um erro a obter o link. Escolha outro servidor.')
 		except ResolverError:
-			self.messageOk('MrPiracy.top', 'Ocorreu um erro a obter o link. Escolha outro servidor.')
+			self.messageOk('MrPiracy.win', 'Ocorreu um erro a obter o link. Escolha outro servidor.')
 
 	def getId(self):
 		#return self.url.split('/')[-1]
@@ -363,14 +363,14 @@ class OpenLoad():
 				if jsonResult['status'] == 200:
 					return jsonResult['result']['url'] + '?mime=true'  #really?? :facepalm:
 				else:
-					self.messageOk('MrPiracy.top', "FILE: "+jsonResult['msg'])
+					self.messageOk('MrPiracy.win', "FILE: "+jsonResult['msg'])
 
 			else:
 
 				self.messageOk('MrPiracy.xyz', "TICKET: "+jsonResult['msg'])
 				return False
 		except:
-			self.messageOk('MrPiracy.top', 'Ocorreu um erro a obter o link. Escolha outro servidor.')
+			self.messageOk('MrPiracy.win', 'Ocorreu um erro a obter o link. Escolha outro servidor.')
 
 	def getCaptcha(self, image):
 		try:
@@ -386,11 +386,11 @@ class OpenLoad():
 			if(letters.isConfirmed()):
 				result = letters.getText()
 				if result == '':
-					self.messageOk('MrPiracy.top', 'Tens de colocar o texto da imagem para aceder ao video.')
+					self.messageOk('MrPiracy.win', 'Tens de colocar o texto da imagem para aceder ao video.')
 				else:
 					return result
 			else:
-				self.messageOk('MrPiracy.top', 'Erro no Captcha')
+				self.messageOk('MrPiracy.win', 'Erro no Captcha')
 		finally:
 			dialog.close()
 
@@ -451,7 +451,7 @@ class Vidzi():
 		sourceCode = self.net.http_GET(self.getNewHost(), headers=self.headers).content
 
 		if '404 Not Found' in sourceCode:
-			self.messageOk('MrPiracy.top', 'Ficheiro nao encontrado ou removido. Escolha outro servidor.')
+			self.messageOk('MrPiracy.win', 'Ficheiro nao encontrado ou removido. Escolha outro servidor.')
 
 		match = re.search('file\s*:\s*"([^"]+)', sourceCode)
 		if match:
@@ -475,7 +475,7 @@ class Vidzi():
 				if stream:
 					return stream.group(1)
 
-		self.messageOk('MrPiracy.top', 'Video nao encontrado. Escolha outro servidor')
+		self.messageOk('MrPiracy.win', 'Video nao encontrado. Escolha outro servidor')
 
 
 	def getSubtitle(self):

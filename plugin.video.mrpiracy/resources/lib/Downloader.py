@@ -16,7 +16,7 @@ class Downloader:
                             except: pass
 
             dp = xbmcgui.DialogProgress()
-            dp.create('MrPiracy.top Downloader')
+            dp.create('MrPiracy.win Downloader')
             dp.update(0,name)
             xbmc.sleep(500)
             start_time = time.time()
