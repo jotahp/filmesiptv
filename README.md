@@ -1,6 +1,5 @@
-xsteal repository
+MrPiracy repository
 ===========================
 
 Addons available:
-- Tuga.io
-- MrPiracy.xyz
+- MrPiracy.top
