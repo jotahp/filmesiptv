@@ -16,7 +16,7 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-import json, re, xbmc, urllib, xbmcgui, os, sys, pprint, urlparse, urllib2, base64, math
+import json, re, xbmc, urllib, xbmcgui, os, sys, pprint, urlparse, urllib2, base64, math, string
 from t0mm0.common.net import Net
 from bs4 import BeautifulSoup
 import jsunpacker
@@ -36,7 +36,10 @@ class GoogleVideo():
 		return urlparse.urlparse(self.url).path.split("/")[-2]
 
 	def getMediaUrl(self):
-		sourceCode = self.net.http_GET(self.url, headers=self.headers).content.decode('unicode_escape')
+		try:
+			sourceCode = self.net.http_GET(self.url, headers=self.headers).content.decode('unicode_escape')
+		except:
+			sourceCode = self.net.http_GET(self.url, headers=self.headers).content
 		formatos = {
 		'5': {'ext': 'flv'},
 		'6': {'ext': 'flv'},
@@ -132,7 +135,7 @@ class OpenLoad():
 				html = html.encode('utf-8')
 			except:
 				pass
-
+			html = self.unpack(html)
 			match = re.search('hiddenurl">(.+?)<\/span>', html, re.IGNORECASE)
 			hiddenurl = HTMLParser().unescape(match.group(1))
 			decodes = []
@@ -287,7 +290,29 @@ class OpenLoad():
 
 	    return videourl
 
+	def caesar_shift(self, s, shift=13):
+	    s2 = ''
+	    for c in s:
+	        if c.isalpha():
+	            limit = 90 if c <= 'Z' else 122
+	            new_code = ord(c) + shift
+	            if new_code > limit:
+	                new_code -= 26
+	            s2 += chr(new_code)
+	        else:
+	            s2 += c
+	    return s2
 
+	def unpack(self, html):
+	    strings = re.findall('{\s*var\s+a\s*=\s*"([^"]+)', html)
+	    shifts = re.findall('\)\);}\((\d+)\)', html)
+	    for s, shift in zip(strings, shifts):
+	        s = self.caesar_shift(s, int(shift))
+	        s = urllib.unquote(s)
+	        for i, replace in enumerate(['j', '_', '__', '___']):
+	            s = s.replace(str(i), replace)
+	        html += '<script>%s</script>' % (s)
+	    return html
 
 	def decode(self, encoded):
 	    for octc in (c for c in re.findall(r'\\(\d{2,3})', encoded)):
@@ -296,33 +321,7 @@ class OpenLoad():
 
 	def getMediaUrl(self):
 
-		#content = self.net.http_GET(self.url, headers=self.headers).content
-
-		#videoUrl = self.decodeOpenLoad(str(content.encode('utf-8')))
-
-		"""headers1 = {
-		        'User-Agent': 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.11 (KHTML, like Gecko) Chrome/23.0.1271.64 Safari/537.11',
-		       'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
-		       'Accept-Charset': 'ISO-8859-1,utf-8;q=0.7,*;q=0.3',
-		       'Accept-Encoding': 'none',
-		       'Accept-Language': 'en-US,en;q=0.8',
-		       'Connection': 'keep-alive'
-		    }
-
-		req = urllib2.Request(self.url, headers=headers1)
-		response = urllib2.urlopen(req)
-		sHtmlContent = response.read()
-		response.close()
-
-		aastring = re.compile("<script[^>]+>(ﾟωﾟﾉ[^<]+)<", re.DOTALL | re.IGNORECASE).findall(sHtmlContent)
-		hahadec = self.decodeOpenLoad(aastring[0]
-		haha = re.compile(r"welikekodi_ya_rly = Math.round([^;]+);", re.DOTALL | re.IGNORECASE).findall(hahadec)[0]
-		haha = eval("int" + haha)"""
-
 		videoUrl = self.parserOPENLOADIO(self.url)
-
-
-		#print videoUrl
 
 		return videoUrl
 
