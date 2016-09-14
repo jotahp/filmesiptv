@@ -136,7 +136,7 @@ class OpenLoad():
 			except:
 				pass
 			html = self.unpack(html)
-			match = re.search('hiddenurl">(.+?)<\/span>', html, re.IGNORECASE)
+			match = re.search('''>([^<]+)</span>\s*<span\s+id="streamurl"''', html, re.DOTALL | re.IGNORECASE)
 			hiddenurl = HTMLParser().unescape(match.group(1))
 			decodes = []
 			for match in re.finditer('<script[^>]*>(.*?)</script>', html, re.DOTALL):
@@ -172,6 +172,8 @@ class OpenLoad():
 			res = urllib2.urlopen(req)
 			videourl = res.geturl()
 			res.close()
+			if int(res.headers['Content-Length']) < 33554432:
+				raise ResolverError('Openload.co resolve failed')
 			if 'pigeons.mp4' in videourl.lower():
 				raise ResolverError('Openload.co resolve failed')
 			return videourl
