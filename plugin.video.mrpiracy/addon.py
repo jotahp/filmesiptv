@@ -462,7 +462,12 @@ def getStreamLegenda(siteBase, codigo_fonte):
                 legenda = legendaAux
             else:
                 legenda = legendas[0]
-
+        elif 'cloud.mail.ru' in links[servidor]:
+            stream, ext_g = URLResolverMedia.CloudMailRu(links[servidor]).getMediaUrl()
+            if legendaAux != '':
+                legenda = legendaAux
+            else:
+                legenda = legendas[0]
     else:
 
         if 'server.mrpiracy.win' in links[0]:
@@ -486,6 +491,12 @@ def getStreamLegenda(siteBase, codigo_fonte):
         elif 'openload' in links[0]:
             stream = URLResolverMedia.OpenLoad(links[0]).getMediaUrl()
             legenda = URLResolverMedia.OpenLoad(links[0]).getSubtitle()
+        elif 'cloud.mail.ru' in links[servidor]:
+            stream, ext_g = URLResolverMedia.CloudMailRu(links[servidor]).getMediaUrl()
+            if legendaAux != '':
+                legenda = legendaAux
+            else:
+                legenda = legendas[0]
 
 
     """if match != []:
@@ -714,12 +725,24 @@ def download(url,name, temporada,episodio,serieNome):
                 legenda = legendaAux
             else:
                 legenda = legendas[0]
+        elif 'cloud.mail.ru' in links[servidor]:
+            stream, ext_g = URLResolverMedia.CloudMailRu(links[servidor]).getMediaUrl()
+            if legendaAux != '':
+                legenda = legendaAux
+            else:
+                legenda = legendas[0]
     else:
         if 'openload' in links[0]:
             stream = URLResolverMedia.OpenLoad(links[0]).getMediaUrl()
             legenda = URLResolverMedia.OpenLoad(links[0]).getSubtitle()
         elif 'drive.google.com/' in links[servidor]:
             stream, ext_g = URLResolverMedia.GoogleVideo(links[0]).getMediaUrl()
+            if legendaAux != '':
+                legenda = legendaAux
+            else:
+                legenda = legendas[0]
+        elif 'cloud.mail.ru' in links[servidor]:
+            stream, ext_g = URLResolverMedia.CloudMailRu(links[servidor]).getMediaUrl()
             if legendaAux != '':
                 legenda = legendaAux
             else:
@@ -758,13 +781,27 @@ def download(url,name, temporada,episodio,serieNome):
         extensaoLegenda = clean(legendaAux.split('.')[1])
         nomeLegenda = name+'.'+extensaoLegenda
         legendasOn = True
-
+    log(stream)
+    log(name)
+    log(legenda)
+    log(nomeStream)
 
     Downloader.Downloader().download(os.path.join(folder.decode("utf-8"),nomeStream), stream, name)
 
     if legendasOn:
         download_legendas(legenda, os.path.join(folder,nomeLegenda))
+def log(msg, level=xbmc.LOGNOTICE):
+    level = xbmc.LOGNOTICE
+    print('[MRPIRACY]: %s' % (msg))
 
+    try:
+        if isinstance(msg, unicode):
+            msg = msg.encode('utf-8')
+        xbmc.log('[MRPIRACY]: %s' % (msg), level)
+    except Exception as e:
+        try:
+            a=1
+        except: pass 
 def download_legendas(url,path):
     contents = abrir_url(url)
     if contents:

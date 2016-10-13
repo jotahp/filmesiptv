@@ -17,6 +17,8 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 import json, re, xbmc, urllib, xbmcgui, os, sys, pprint, urlparse, urllib2, base64, math, string
+import htmlentitydefs
+from cPacker import cPacker
 from t0mm0.common.net import Net
 from bs4 import BeautifulSoup
 import jsunpacker
@@ -24,6 +26,42 @@ from AADecoder import AADecoder
 from JJDecoder import JJDecoder
 from png import Reader as PNGReader
 from HTMLParser import HTMLParser
+
+def clean(text):
+    command={'&#8220;':'"','&#8221;':'"', '&#8211;':'-','&amp;':'&','&#8217;':"'",'&#8216;':"'"}
+    regex = re.compile("|".join(map(re.escape, command.keys())))
+    return regex.sub(lambda mo: command[mo.group(0)], text)
+
+def log(msg, level=xbmc.LOGNOTICE):
+	level = xbmc.LOGNOTICE
+	print('[MRPIRACY]: %s' % (msg))
+
+	try:
+		if isinstance(msg, unicode):
+			msg = msg.encode('utf-8')
+		xbmc.log('[MRPIRACY]: %s' % (msg), level)
+	except Exception as e:
+		try:
+			a=1
+		except: pass  
+
+class CloudMailRu():
+	def __init__(self, url):
+		self.url = url
+		self.net = Net()
+		self.headers = {"User-Agent": "Mozilla/5.0 (Windows; U; Windows NT 5.1; en-GB; rv:1.9.0.3) Gecko/2008092417 Firefox/3.0.3"}
+
+	def getId(self):
+		return re.compile('(?:\/\/|\.)cloud\.mail\.ru\/public\/(.+)').findall(self.url)[0]
+	def getMediaUrl(self):
+		conteudo = self.net.http_GET(self.url).content
+		ext = re.compile('<meta name=\"twitter:image\" content=\"(.+?)\"/>').findall(conteudo)[0]
+		streamAux = clean(ext.split('/')[-1])
+		extensaoStream = clean(streamAux.split('.')[-1])
+		token = re.compile('"tokens"\s*:\s*{\s*"download"\s*:\s*"([^"]+)').findall(conteudo)[0]
+		mediaLink = re.compile('"weblink_get"\s*:\s*\[.+?"url"\s*:\s*"([^"]+)').findall(conteudo)[0]
+		videoUrl = '%s/%s?key=%s' % (mediaLink, self.getId(), token)
+		return videoUrl, extensaoStream
 
 class GoogleVideo():
 	def __init__(self, url):
@@ -68,13 +106,13 @@ class GoogleVideo():
 		i = 0
 		for stream in streamsLista:
 			formatoId, streamUrl = stream.split('|')
-			form = formatos.get(formatoId)
-			extensao = form['ext']
-			resolucao = formatosLista[i].split('/')[1]
-			largura, altura = resolucao.split('x')
-			if 'mp' in extensao or 'flv' in extensao:
-				qualidades.append(altura+'p '+extensao)
-				videos.append(streamUrl)
+		form = formatos.get(formatoId)
+		extensao = form['ext']
+		resolucao = formatosLista[i].split('/')[1]
+		largura, altura = resolucao.split('x')
+		if 'mp' in extensao or 'flv' in extensao:
+			qualidades.append(altura+'p '+extensao)
+			videos.append(streamUrl)
 			i+=1
 		qualidade = xbmcgui.Dialog().select('Escolha a qualidade', qualidades)
 		return videos[qualidade], qualidades[qualidade].split('p ')[-1]
@@ -127,56 +165,86 @@ class OpenLoad():
 
 	def parserOPENLOADIO(self, url):
 		try:
-			req = urllib2.Request(url, headers=self.headers)
+			req = urllib2.Request(url, headers={'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10.11; rv:43.0) Gecko/20100101 Firefox/43.0'})
 			response = urllib2.urlopen(req)
 			html = response.read()
 			response.close()
-			try:
-				html = html.encode('utf-8')
-			except:
-				pass
-			html = self.unpack(html)
-			match = re.search('''>([^<]+)</span>\s*<span\s+id="streamurl"''', html, re.DOTALL | re.IGNORECASE)
-			hiddenurl = HTMLParser().unescape(match.group(1))
-			decodes = []
-			for match in re.finditer('<script[^>]*>(.*?)</script>', html, re.DOTALL):
-				encoded = match.group(1)
-				match = re.search("(ﾟωﾟﾉ.*?('_');)", encoded, re.DOTALL)
-				if match:
-					decodes.append(AADecoder(match.group(1)).decode())
-				match = re.search('(.=~\[\].*\(\);)', encoded, re.DOTALL)
-				if match:
-					decodes.append(JJDecoder(match.group(1)).decode())
-			magic_number = 0
-			if not decodes:
+			try: html = html.encode('utf-8')
+			except: pass
+
+			TabUrl = []
+			sPattern = '<span id="([^"]+)">([^<>]+)<\/span>'
+			aResult = self.parse(html, sPattern)
+			if (aResult[0]):
+				TabUrl = aResult[1]
+			else:
+				log("No Encoded Section Found. Deleted?")
 				raise ResolverError('No Encoded Section Found. Deleted?')
-			for decode in decodes:
-				match = re.search('charCodeAt\(\d+\)\s*\+\s*(\d+)\)', decode, re.DOTALL | re.I)
-				if match:
-					magic_number = match.group(1)
-				else:
-					magic_number = 3
-			s = []
-			for idx, i in enumerate(hiddenurl):
-				j = ord(i)
-				if (j >= 33 & j <= 126):
-					j = 33 + ((j + 14) % 94)
-				if idx == len(hiddenurl) - 1:
-					j += int(magic_number)
-				s.append(chr(j))
-			res = ''.join(s)
-			videoUrl = 'https://openload.co/stream/{0}?mime=true'.format(res)
-			dtext = videoUrl.replace('https', 'http')
-			headers = {'User-Agent': self.headers['User-Agent']}
-			req = urllib2.Request(dtext, None, headers)
-			res = urllib2.urlopen(req)
-			videourl = res.geturl()
-			res.close()
-			if int(res.headers['Content-Length']) < 33554432:
+			sPattern = '<script src="\/assets\/js\/video-js\/video\.js\.ol\.js">(.+)*'
+			aResult = self.parse(html, sPattern)
+			if (aResult[0]):
+				sHtmlContent2 = aResult[1][0]
+			code = ''
+			maxboucle = 1
+			sHtmlContent3 = sHtmlContent2
+			while (('#streamurl' not in sHtmlContent3) and (maxboucle > 0)):
+				sHtmlContent3 = self.CheckCpacker(sHtmlContent3)
+				sHtmlContent3 = self.CheckJJDecoder(sHtmlContent3)
+				maxboucle = maxboucle - 1
+			code = sHtmlContent3
+			if not (code):
+				log("No Encoded Section Found. Deleted?")
+				raise ResolverError('No Encoded Section Found. Deleted?')
+			hideenurl = ''
+			Hiddenvar = 'y'
+
+			sPattern = 'var j=([a-z])\.charCodeAt'
+			aResult = self.parse(code, sPattern)
+			if (aResult[0]):
+				Hiddenvar = re.search('var j=([a-z])\.charCodeAt', code).group(1)
+			sPattern = 'var ' + Hiddenvar + ' = \$\("#([^"]+)"\)'
+			aResult = self.parse(code, sPattern)
+			if (aResult[0]):
+				for i in TabUrl:
+					if aResult[1][0] == i[0]:
+						hideenurl = i[1]
+			if not(hideenurl):
+				log("No Encoded Section Found. Deleted?")
+				raise ResolverError('No Encoded Section Found. Deleted?')
+			sPattern = '\(tmp\.slice\(-1\)\.charCodeAt\(0\) \+ ([0-9]+)\)'
+			aResult = self.parse(code, sPattern)
+
+			val = 3
+			if (aResult[0]):
+				val = int(aResult[1][0])
+
+			string = self.unescape(hideenurl)
+			url = ''
+
+			for c in string:
+				v = ord(c)
+				if v >= 33 and v <= 126:
+					v = ((v + 14) % 94) + 33
+				url = url + chr(v)
+			url = url[:-1] + chr(ord(url[-1]) + val)
+			
+			api_call = "https://openload.co/stream/" + url + "?mime=true"
+			api_call = self.GetOpenloadUrl(api_call)
+
+			if not (api_call):
+				url0 = url[:-1] + chr(ord(url[-1]) - val)
+				for i in range(0,3):
+					if i != val:
+						url2 = url0[:-1] + chr(ord(url0[-1]) + i)
+						url2 = "https://openload.co/stream/" + url2 + "?mime=true"
+						url3 = self.GetOpenloadUrl(url2)
+						if (url3):
+							api_call = url3
+
+			if 'KDA_8nZ2av4/x.mp4' in api_call:
 				raise ResolverError('Openload.co resolve failed')
-			if 'pigeons.mp4' in videourl.lower():
-				raise ResolverError('Openload.co resolve failed')
-			return videourl
+			log(api_call)
+			return api_call
 		except Exception as e:
 			self.messageOk('MrPiracy.win', 'Ocorreu um erro a obter o link. Escolha outro servidor.')
 		except ResolverError:
@@ -190,136 +258,24 @@ class OpenLoad():
 			return re.compile('https\:\/\/openload.co\/f\/(.+?)\/').findall(self.url)[0]
 
 
-	def base10toN(self,num,n):
-		num_rep = {10: 'a',
-		11: 'b',
-		12: 'c',
-		13: 'd',
-		14: 'e',
-		15: 'f',
-		16: 'g',
-		17: 'h',
-		18: 'i',
-		19: 'j',
-		20: 'k',
-		21: 'l',
-		22: 'm',
-		23: 'n',
-		24: 'o',
-		25: 'p',
-		26: 'q',
-		27: 'r',
-		28: 's',
-		29: 't',
-		30: 'u',
-		31: 'v',
-		32: 'w',
-		33: 'x',
-		34: 'y',
-		35: 'z'}
-		new_num_string = ''
-		current = num
-		while current != 0:
-			remainder = current % n
-			if 36 > remainder > 9:
-				remainder_string = num_rep[remainder]
-			elif remainder >= 36:
-				remainder_string = '(' + str(remainder) + ')'
+	def unescape(self, text):
+		def fixup(m):
+			text = m.group(0)
+			if text[:2] == "&#":
+				try:
+					if text[:3] == "&#x":
+						return unichr(int(text[3:-1], 16))
+					else:
+						return unichr(int(text[2:-1]))
+				except ValueError:
+					pass
 			else:
-				remainder_string = str(remainder)
-			new_num_string = remainder_string + new_num_string
-			current = current / n
-
-		return new_num_string
-
-
-	def decodeOpenLoad(self, aastring):
-	    aastring = aastring.replace("(ﾟДﾟ)[ﾟεﾟ]+(oﾟｰﾟo)+ ((c^_^o)-(c^_^o))+ (-~0)+ (ﾟДﾟ) ['c']+ (-~-~1)+","")
-	    aastring = aastring.replace("((ﾟｰﾟ) + (ﾟｰﾟ) + (ﾟΘﾟ))", "9")
-	    aastring = aastring.replace("((ﾟｰﾟ) + (ﾟｰﾟ))","8")
-	    aastring = aastring.replace("((ﾟｰﾟ) + (o^_^o))","7")
-	    aastring = aastring.replace("((o^_^o) +(o^_^o))","6")
-	    aastring = aastring.replace("((ﾟｰﾟ) + (ﾟΘﾟ))","5")
-	    aastring = aastring.replace("(ﾟｰﾟ)","4")
-	    aastring = aastring.replace("((o^_^o) - (ﾟΘﾟ))","2")
-	    aastring = aastring.replace("(o^_^o)","3")
-	    aastring = aastring.replace("(ﾟΘﾟ)","1")
-	    aastring = aastring.replace("(+!+[])","1")
-	    aastring = aastring.replace("(c^_^o)","0")
-	    aastring = aastring.replace("(0+0)","0")
-	    aastring = aastring.replace("(ﾟДﾟ)[ﾟεﾟ]","\\")
-	    aastring = aastring.replace("(3 +3 +0)","6")
-	    aastring = aastring.replace("(3 - 1 +0)","2")
-	    aastring = aastring.replace("(!+[]+!+[])","2")
-	    aastring = aastring.replace("(-~-~2)","4")
-	    aastring = aastring.replace("(-~-~1)","3")
-	    aastring = aastring.replace("(-~0)","1")
-	    aastring = aastring.replace("(-~1)","2")
-	    aastring = aastring.replace("(-~3)","4")
-	    aastring = aastring.replace("(0-0)","0")
-
-	    decodestring = re.search(r"\\\+([^(]+)", aastring, re.DOTALL | re.IGNORECASE).group(1)
-	    decodestring = "\\+"+ decodestring
-	    decodestring = decodestring.replace("+","")
-	    decodestring = decodestring.replace(" ","")
-
-	    decodestring = self.decode(decodestring)
-	    decodestring = decodestring.replace("\\/","/")
-
-	    if 'toString' in decodestring:
-	        base = re.compile(r"toString\(a\+(\d+)", re.DOTALL | re.IGNORECASE).findall(decodestring)[0]
-	        base = int(base)
-	        match = re.compile(r"(\(\d[^)]+\))", re.DOTALL | re.IGNORECASE).findall(decodestring)
-	        for repl in match:
-	            match1 = re.compile(r"(\d+),(\d+)", re.DOTALL | re.IGNORECASE).findall(repl)
-	            base2 = base + int(match1[0][0])
-	            repl2 = self.base10toN(int(match1[0][1]),base2)
-	            decodestring = decodestring.replace(repl,repl2)
-	        decodestring = decodestring.replace("+","")
-	        decodestring = decodestring.replace("\"","")
-	        videourl = re.search(r"(http[^\}]+)", decodestring, re.DOTALL | re.IGNORECASE).group(1)
-	        videourl = videourl.replace("https","http")
-	    else:
-	        return decodestring
-
-	    UA = 'Mozilla/5.0 (Windows NT 6.1; WOW64; rv:39.0) Gecko/20100101 Firefox/39.0'
-	    headers = {'User-Agent': UA }
-
-	    req = urllib2.Request(videourl,None,headers)
-	    res = urllib2.urlopen(req)
-	    videourl = res.geturl()
-
-
-	    return videourl
-
-	def caesar_shift(self, s, shift=13):
-	    s2 = ''
-	    for c in s:
-	        if c.isalpha():
-	            limit = 90 if c <= 'Z' else 122
-	            new_code = ord(c) + shift
-	            if new_code > limit:
-	                new_code -= 26
-	            s2 += chr(new_code)
-	        else:
-	            s2 += c
-	    return s2
-
-	def unpack(self, html):
-	    strings = re.findall('{\s*var\s+a\s*=\s*"([^"]+)', html)
-	    shifts = re.findall('\)\);}\((\d+)\)', html)
-	    for s, shift in zip(strings, shifts):
-	        s = self.caesar_shift(s, int(shift))
-	        s = urllib.unquote(s)
-	        for i, replace in enumerate(['j', '_', '__', '___']):
-	            s = s.replace(str(i), replace)
-	        html += '<script>%s</script>' % (s)
-	    return html
-
-	def decode(self, encoded):
-	    for octc in (c for c in re.findall(r'\\(\d{2,3})', encoded)):
-	        encoded = encoded.replace(r'\%s' % octc, chr(int(octc, 8)))
-	    return encoded.decode('utf8')
+				try:
+					text = unichr(htmlentitydefs.name2codepoint[text[1:-1]])
+				except KeyError:
+					pass
+				return text # leave as is
+		return re.sub("&#?\w+;", fixup, text)
 
 	def getMediaUrl(self):
 
@@ -334,6 +290,48 @@ class OpenLoad():
 
 		return url
 
+	def parse(self, sHtmlContent, sPattern, iMinFoundValue = 1):
+		sHtmlContent = self.replaceSpecialCharacters(str(sHtmlContent))
+		aMatches = re.compile(sPattern, re.IGNORECASE).findall(sHtmlContent)
+		if (len(aMatches) >= iMinFoundValue):
+			return True, aMatches
+		return False, aMatches
+	def replaceSpecialCharacters(self, sString):
+		return sString.replace('\\/','/').replace('&amp;','&').replace('\xc9','E').replace('&#8211;', '-').replace('&#038;', '&').replace('&rsquo;','\'').replace('\r','').replace('\n','').replace('\t','').replace('&#039;',"'")
+
+	def parseInt(self, sin):
+		return int(''.join([c for c in re.split(r'[,.]',str(sin))[0] if c.isdigit()])) if re.match(r'\d+', str(sin), re.M) and not callable(sin) else None
+
+	def GetOpenloadUrl(self, url):
+		finalurl = ''
+		if 'openload.co/stream' in url:
+			headers = {'User-Agent': 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.11 (KHTML, like Gecko) Chrome/23.0.1271.64 Safari/537.11' }
+			req = urllib2.Request(url,None,headers)
+			res = urllib2.urlopen(req)
+			finalurl = res.geturl()
+		return finalurl
+
+	def CheckCpacker(self, str):
+		sPattern = '(\s*eval\s*\(\s*function(?:.|\s)+?{}\)\))'
+		aResult = self.parse(str, sPattern)
+		if (aResult[0]):
+			str2 = aResult[1][0]
+			if not str2.endswith(';'):
+				str2 = str2 + ';'
+			return cPacker().unpack(str2)
+		return str
+	def CheckJJDecoder(self, str):
+		sPattern = '([a-z]=.+?\(\)\)\(\);)'
+		aResult = self.parse(str, sPattern)
+		if (aResult[0]):
+			return JJDecoder(aResult[1][0]).decode()
+		return str
+	def CheckAADecoder(self, str):
+		sPattern = '(ﾟωﾟ.+?)<\/script>'
+		aResult = self.parse(str, sPattern)
+		if (aResult[0]):
+			return AADecoder(aResult[1][0]).decode()
+		return str
 	def getMediaUrlOld(self):
 
 		try:
@@ -469,8 +467,11 @@ class Vidzi():
 					subtitle = re.compile('tracks:\[\{file:"(.+?)\.srt"').findall(dataJs)[0]
 					subtitle += ".srt"
 				except:
-					subtitle = re.compile('tracks:\[\{file:"(.+?)\.vtt"').findall(dataJs)[0]
-					subtitle += ".vtt"
+					try:
+						subtitle = re.compile('tracks:\[\{file:"(.+?)\.vtt"').findall(dataJs)[0]
+						subtitle += ".vtt"
+					except:
+						subtitle = ''
 				self.subtitle = subtitle
 
 				if stream:
