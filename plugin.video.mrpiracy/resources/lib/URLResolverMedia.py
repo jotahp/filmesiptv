@@ -190,6 +190,7 @@ class OpenLoad():
 			while (('#streamurl' not in sHtmlContent3) and (maxboucle > 0)):
 				sHtmlContent3 = self.CheckCpacker(sHtmlContent3)
 				sHtmlContent3 = self.CheckJJDecoder(sHtmlContent3)
+				sHtmlContent3 = self.CheckAADecoder(sHtmlContent3)
 				maxboucle = maxboucle - 1
 			code = sHtmlContent3
 			if not (code):
@@ -220,9 +221,16 @@ class OpenLoad():
 
 			string = self.unescape(hideenurl)
 			url = ''
-
+			if 'magic' in code:
+				magic = ord(string[-1])
+			else:
+				magic = -1
 			for c in string:
 				v = ord(c)
+				if v == magic:
+					v -= 1
+				elif v == magic - 1:
+					v += 1
 				if v >= 33 and v <= 126:
 					v = ((v + 14) % 94) + 33
 				url = url + chr(v)
