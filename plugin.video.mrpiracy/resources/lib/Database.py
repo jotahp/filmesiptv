@@ -9,7 +9,7 @@ except:
 
 import xbmcvfs, os, sys, xbmc
 
-__DB_FILE__ = os.path.join(xbmc.translatePath('special://userdata/addon_data/plugin.video.mrpiracy/').decode('utf8'), 'cache.db')
+__DB_FILE__ = os.path.join(xbmc.translatePath('special://userdata/addon_data/plugin.video.mrpiracy/').decode('utf8'), 'dados.db')
 
 def isExists():
     if not xbmcvfs.exists(__DB_FILE__):
@@ -27,22 +27,32 @@ def createDB():
         f.close()"""
 
         con, dbcursor = connect()
-
+        dbcursor.execute("CREATE TABLE IF NOT EXISTS trakt (id integer PRIMARY KEY NOT NULL, filmes text, series text, horas text);")
+        """
         dbcursor.execute("CREATE TABLE IF NOT EXISTS episodios (id integer PRIMARY KEY NOT NULL,nome text,plot text,categoria text,actores text,temporada text,episodio text,visto text DEFAULT('nao'),fanart text,poster text,imdb text,tvdb text,aired text,serienome text,traktid text);")
         dbcursor.execute("CREATE TABLE IF NOT EXISTS filmes (id integer PRIMARY KEY NOT NULL,imdb text,nome text,plot text,actores text,categoria text,visto text DEFAULT('nao'),fanart text,poster text,trailer text,ano text,traktid text,slug text);")
         dbcursor.execute("CREATE TABLE IF NOT EXISTS series (id integer PRIMARY KEY NOT NULL,nome text,plot text,imdb text,tvdb text,actores text,categoria text,visto text DEFAULT('nao'),fanart text,poster text,aired text,ano text,traktid text,slug text);")
-        dbcursor.execute("CREATE TABLE IF NOT EXISTS temporadas (id integer PRIMARY KEY NOT NULL,imdb text,tvdb text,fanart text,temporada text,poster text);")
+        dbcursor.execute("CREATE TABLE IF NOT EXISTS temporadas (id integer PRIMARY KEY NOT NULL,imdb text,tvdb text,fanart text,temporada text,poster text);")"""
         con.commit()
 
 def connect():
     conn = database.connect(__DB_FILE__)
     cursor = conn.cursor()
-
+    conn.text_factory = str
     return conn, cursor
 
 def close(conn):
     conn.close()
 
+def insertTraktDB(filmes, series, data):
+    con, dbcursor = connect()
+    dbcursor.execute("INSERT OR REPLACE INTO trakt (id, filmes, series, horas) VALUES (?, ?, ?, ?)", (1, filmes, series, data))
+    con.commit()
+
+def selectTraktDB():
+    con, dbcursor = connect()
+    dbcursor.execute("SELECT * FROM trakt WHERE id=1")
+    return dbcursor.fetchone()
 
 def insertFilmeDB(nome, plot, imdb, poster, fanart, trailer, ano, traktid, slug, categoria=None, actores=None):
     if categoria == None:

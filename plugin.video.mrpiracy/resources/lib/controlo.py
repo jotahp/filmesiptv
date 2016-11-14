@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 
 import os,xbmc,xbmcaddon,xbmcplugin,xbmcgui,xbmcvfs,sys,urllib,urllib2,unicodedata,re,urlparse
+from datetime import datetime
 
 from t0mm0.common.addon import Addon
 
@@ -18,6 +19,7 @@ mensagemprogresso = xbmcgui.DialogProgress()
 teclado = xbmc.Keyboard
 pastaDados = Addon(addonInfo("id")).get_profile().decode("utf-8")
 headers = {'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10.11; rv:43.0) Gecko/20100101 Firefox/43.0', 'Accept-Charset': 'utf-8;q=0.7,*;q=0.7', 'Content-Type': 'application/json'}
+dataHoras = datetime.now()
 
 def addDir(name,url,modo,iconimage,pagina=False,tipo=False,infoLabels=False,poster=False,visto=False):
     menu = []

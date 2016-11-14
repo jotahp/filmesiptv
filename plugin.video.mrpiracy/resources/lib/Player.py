@@ -1,7 +1,7 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
 
-import os
+import os, base64
 import xbmcgui
 import xbmc
 import xbmcvfs
@@ -15,6 +15,8 @@ import json
 import Trakt
 import Database
 from t0mm0.common.net import Net
+
+import controlo
 
 __HEADERS__ = {'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10.11; rv:43.0) Gecko/20100101 Firefox/43.0', 'Accept-Charset': 'ISO-8859-1,utf-8;q=0.7,*;q=0.7'}
 
@@ -34,7 +36,7 @@ class Player(xbmc.Player):
         self.pastaData = xbmc.translatePath(pastaData)
         self.nome = nome
         self.logo = logo
-        
+        self.API_SITE = base64.urlsafe_b64decode('aHR0cDovL21ycGlyYWN5Lndpbi9hcGkv')
 
         if not xbmcvfs.exists(os.path.join(pastaData,'tracker')):
             xbmcvfs.mkdirs(os.path.join(pastaData,'tracker'))
@@ -90,37 +92,59 @@ class Player(xbmc.Player):
                 pass
 
     def adicionarVistoSite(self):
+        controlo.headers['Authorization'] = 'Bearer %s' % controlo.addon.getSetting('tokenMrpiracy')
+        links = self.url.split('/')
+        if 'filme' in url:
+            id_video = links[-1]
+            post = {'id_filme': id_video}
+            url = self.API_SITE+'filmes/marcar-visto'
+            tipo = 0
+        elif 'serie' in url:
+            id_video = links[5]
+            temporada = links[7]
+            episodio = links[-1]
+            post = {'id_serie': id_video, 'temporada': temporada, 'episodio':episodio}
+            url = self.API_SITE+'series/marcar-visto'
+            tipo = 1
+        elif 'anime' in url:
+            id_video = links[5]
+            temporada = links[7]
+            episodio = links[-1]
+            post = {'id_anime': id_video, 'temporada': temporada, 'episodio':episodio}
+            url = self.API_SITE+'animes/marcar-visto'
+            tipo = 2
 
-        net = Net()
-        net.set_cookies(__COOKIE_FILE__)
-
-        codigo_fonte = net.http_GET(self.url, headers=__HEADERS__).content
-
-        if self.content == 'movie':
-            visto = re.compile('xmlhttp\.open\(\"GET\"\,\"getvisto\.php\?id\=(.+?)\"\,true\)\;').findall(codigo_fonte)[0]
-            siteVisto = __SITE__+'getvisto.php?id='+visto
-        elif self.content == 'episode':
-            visto = re.compile('<div class="episode-actions">\s+<a href="(.+?)" class="marcar">Marcar como visto<\/a><a').findall(codigo_fonte)[0]
-            siteVisto = __SITE__+visto
-
-        if visto != '':
-            marcar = net.http_GET(siteVisto, headers=__HEADERS__).content
-
-
-
+        resultado = controlo.abrir_url(url, post=json.dumps(post), header=controlo.headers)
+        if resultado == 'DNS':
+            controlo.alerta('MrPiracy', 'Tem de alterar os DNS para poder usufruir do addon')
+            return False
+        
+        resultado = json.loads(resultado)
+        
+        if resultado['codigo'] == 200:
+            xbmc.executebuiltin("XBMC.Notification(MrPiracy,"+"Marcado como visto"+","+"6000"+","+ os.path.join(controlo.addonFolder,'icon.png')+")")
+            xbmc.executebuiltin("Container.Refresh")
+        if resultado['codigo'] == 201:
+            xbmc.executebuiltin("XBMC.Notification(MrPiracy,"+"Marcado como não visto"+","+"6000"+","+ os.path.join(controlo.addonFolder,'icon.png')+")")
+            xbmc.executebuiltin("Container.Refresh")
+        elif resultado['codigo'] == 204:
+            controlo.alerta('MrPiracy', 'Ocorreu um erro ao marcar como visto')
 
     def onPlayBackEnded(self):
         self.onPlayBackStopped()
 
     def adicionarVistoBiblioteca(self):
-        if self.content == 'episode':
-            Database.markwatchedEpisodioDB(self.idFilme, self.temporada, self.episodio)
-            if Trakt.loggedIn():
-                Trakt.markwatchedEpisodioTrakt(self.idFilme, self.temporada, self.episodio)
-        elif self.content == 'movie':
-            Database.markwatchedFilmeDB(self.idFilme)
-            if Trakt.loggedIn():
-                Trakt.markwatchedFilmeTrakt(self.idFilme)
+        try:
+            if self.content == 'episode':
+                Database.markwatchedEpisodioDB(self.idFilme, self.temporada, self.episodio)
+                if Trakt.loggedIn():
+                    Trakt.markwatchedEpisodioTrakt(self.idFilme, self.temporada, self.episodio)
+            elif self.content == 'movie':
+                Database.markwatchedFilmeDB(self.idFilme)
+                if Trakt.loggedIn():
+                    Trakt.markwatchedFilmeTrakt(self.idFilme)
+        except:
+            pass
 
     def adicionarVistoBiblioteca2(self):
         pastaVisto=os.path.join(self.pastaData,'vistos')
