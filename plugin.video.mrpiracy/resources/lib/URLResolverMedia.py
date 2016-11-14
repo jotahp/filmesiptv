@@ -23,6 +23,7 @@ from t0mm0.common.net import Net
 from bs4 import BeautifulSoup
 import jsunpacker
 from AADecoder import AADecoder
+from JsParser import JsParser
 from JJDecoder import JJDecoder
 from png import Reader as PNGReader
 from HTMLParser import HTMLParser
@@ -44,6 +45,53 @@ def log(msg, level=xbmc.LOGNOTICE):
 		try:
 			a=1
 		except: pass  
+class RapidVideo():
+	def __init__(self, url):
+		self.url = url
+		self.net = Net()
+		self.headers = {"User-Agent": "Mozilla/5.0 (Windows; U; Windows NT 5.1; en-GB; rv:1.9.0.3) Gecko/2008092417 Firefox/3.0.3"}
+		self.legenda = ''
+
+	def getId(self):
+		return urlparse.urlparse(self.url).path.split("/")[-1]
+
+	def getMediaUrl(self):
+		try:
+			sourceCode = self.net.http_GET(self.url, headers=self.headers).content.decode('unicode_escape')
+		except:
+			sourceCode = self.net.http_GET(self.url, headers=self.headers).content
+
+		sPattern =  '"file":"([^"]+)","label":"([0-9]+)p"'
+		aResult = self.parse(sourceCode, sPattern)
+		self.legenda = re.compile('"file":"([^"]+)","label":".+?","kind":"captions"').findall(sourceCode)[0]
+		videoUrl = ''
+		if aResult[0]:
+			links = []
+			qualidades = []
+			for aEntry in aResult[1]:
+				links.append(aEntry[0])
+				qualidades.append(aEntry[1]+'p')
+
+			if len(links) == 1:
+				videoUrl = links[0]
+			elif len(links) > 1:
+				links.reverse()
+				qualidades.reverse()
+
+				qualidade = xbmcgui.Dialog().select('Escolha a qualidade', qualidades)
+				videoUrl = links[qualidade]
+
+		return videoUrl
+	def getLegenda(self):
+		return self.legenda
+	def parse(self, sHtmlContent, sPattern, iMinFoundValue = 1):
+		sHtmlContent = self.replaceSpecialCharacters(str(sHtmlContent))
+		aMatches = re.compile(sPattern, re.IGNORECASE).findall(sHtmlContent)
+		if (len(aMatches) >= iMinFoundValue):
+			return True, aMatches
+		return False, aMatches
+	def replaceSpecialCharacters(self, sString):
+		return sString.replace('\\/','/').replace('&amp;','&').replace('\xc9','E').replace('&#8211;', '-').replace('&#038;', '&').replace('&rsquo;','\'').replace('\r','').replace('\n','').replace('\t','').replace('&#039;',"'")
 
 class CloudMailRu():
 	def __init__(self, url):
@@ -68,16 +116,28 @@ class GoogleVideo():
 		self.url = url
 		self.net = Net()
 		self.headers = {"User-Agent": "Mozilla/5.0 (Windows; U; Windows NT 5.1; en-GB; rv:1.9.0.3) Gecko/2008092417 Firefox/3.0.3"}
-
+		self.UA = 'Mozilla/5.0 (Windows NT 6.1; WOW64; rv:39.0) Gecko/20100101 Firefox/39.0'
 
 	def getId(self):
 		return urlparse.urlparse(self.url).path.split("/")[-2]
 
 	def getMediaUrl(self):
+		req = urllib2.Request(self.url)
+		response = urllib2.urlopen(req)  
+		sourceCode = response.read()
+		Headers = response.headers
+		response.close()
 		try:
-			sourceCode = self.net.http_GET(self.url, headers=self.headers).content.decode('unicode_escape')
+			sourceCode = sourceCode.decode('unicode_escape')
 		except:
-			sourceCode = self.net.http_GET(self.url, headers=self.headers).content
+			pass
+		c = Headers['Set-Cookie']
+		c2 = re.findall('(?:^|,) *([^;,]+?)=([^;,\/]+?);',c)
+		if c2:
+			cookies = ''
+			for cook in c2:
+				cookies = cookies + cook[0] + '=' + cook[1]+ ';'
+
 		formatos = {
 		'5': {'ext': 'flv'},
 		'6': {'ext': 'flv'},
@@ -106,16 +166,16 @@ class GoogleVideo():
 		i = 0
 		for stream in streamsLista:
 			formatoId, streamUrl = stream.split('|')
-		form = formatos.get(formatoId)
-		extensao = form['ext']
-		resolucao = formatosLista[i].split('/')[1]
-		largura, altura = resolucao.split('x')
-		if 'mp' in extensao or 'flv' in extensao:
-			qualidades.append(altura+'p '+extensao)
-			videos.append(streamUrl)
-			i+=1
+			form = formatos.get(formatoId)
+			extensao = form['ext']
+			resolucao = formatosLista[i].split('/')[1]
+			largura, altura = resolucao.split('x')
+			if 'mp' in extensao or 'flv' in extensao:
+				qualidades.append(altura+'p '+extensao)
+				videos.append(streamUrl)
+				i+=1
 		qualidade = xbmcgui.Dialog().select('Escolha a qualidade', qualidades)
-		return videos[qualidade], qualidades[qualidade].split('p ')[-1]
+		return videos[qualidade]+'|User-Agent=' + self.UA + '&Cookie=' + cookies, qualidades[qualidade].split('p ')[-1]
 
 
 class UpToStream():
@@ -163,105 +223,102 @@ class OpenLoad():
 			'Accept-Language': 'en-US,en;q=0.8',
 			'Referer': url}
 
-	def parserOPENLOADIO(self, url):
-		try:
-			req = urllib2.Request(url, headers={'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10.11; rv:43.0) Gecko/20100101 Firefox/43.0'})
-			response = urllib2.urlopen(req)
-			html = response.read()
-			response.close()
-			try: html = html.encode('utf-8')
-			except: pass
+	def parserOPENLOADIO(self, urlF):
+		#try:
+		req = urllib2.Request(urlF, headers={'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10.11; rv:43.0) Gecko/20100101 Firefox/43.0'})
+		response = urllib2.urlopen(req)
+		html = response.read()
+		response.close()
+		try: html = html.encode('utf-8')
+		except: pass
 
-			TabUrl = []
-			sPattern = '<span id="([^"]+)">([^<>]+)<\/span>'
-			aResult = self.parse(html, sPattern)
-			if (aResult[0]):
-				TabUrl = aResult[1]
-			else:
-				log("No Encoded Section Found. Deleted?")
-				raise ResolverError('No Encoded Section Found. Deleted?')
-			sPattern = '<script src="\/assets\/js\/video-js\/video\.js\.ol\.js">(.+)*'
-			aResult = self.parse(html, sPattern)
-			if (aResult[0]):
-				sHtmlContent2 = aResult[1][0]
-			code = ''
-			maxboucle = 1
-			sHtmlContent3 = sHtmlContent2
-			while (('#streamurl' not in sHtmlContent3) and (maxboucle > 0)):
-				sHtmlContent3 = self.CheckCpacker(sHtmlContent3)
-				sHtmlContent3 = self.CheckJJDecoder(sHtmlContent3)
-				sHtmlContent3 = self.CheckAADecoder(sHtmlContent3)
-				maxboucle = maxboucle - 1
-			code = sHtmlContent3
-			if not (code):
-				log("No Encoded Section Found. Deleted?")
-				raise ResolverError('No Encoded Section Found. Deleted?')
-			hideenurl = ''
-			Hiddenvar = 'y'
+		TabUrl = []
+		sPattern = '<span id="([^"]+)">([^<>]+)<\/span>'
+		aResult = self.parse(html, sPattern)
+		if (aResult[0]):
+			TabUrl = aResult[1]
+		else:
+			log("No Encoded Section Found. Deleted?")
+			raise ResolverError('No Encoded Section Found. Deleted?')
+		sPattern = '<script src="\/assets\/js\/video-js\/video\.js\.ol\.js">(.+)*'
+		aResult = self.parse(html, sPattern)
+		if (aResult[0]):
+			sHtmlContent2 = aResult[1][0]
+		code = ''
+		maxboucle = 1
+		sHtmlContent3 = sHtmlContent2
+		while (('#streamurl' not in sHtmlContent3) and (maxboucle > 0)):
+			sHtmlContent3 = self.CheckCpacker(sHtmlContent3)
+			sHtmlContent3 = self.CheckJJDecoder(sHtmlContent3)
+			sHtmlContent3 = self.CheckAADecoder(sHtmlContent3)
+			maxboucle = maxboucle - 1
+		code = sHtmlContent3
+		if not (code):
+			log("No Encoded Section Found. Deleted?")
+			raise ResolverError('No Encoded Section Found. Deleted?')
+		hideenurl = ''
+		Hiddenvar = 'y'
 
-			sPattern = 'var j=([a-z])\.charCodeAt'
-			aResult = self.parse(code, sPattern)
-			if (aResult[0]):
-				Hiddenvar = re.search('var j=([a-z])\.charCodeAt', code).group(1)
-			sPattern = 'var ' + Hiddenvar + ' = \$\("#([^"]+)"\)'
-			aResult = self.parse(code, sPattern)
-			if (aResult[0]):
-				for i in TabUrl:
-					if aResult[1][0] == i[0]:
-						hideenurl = i[1]
-			if not(hideenurl):
-				log("No Encoded Section Found. Deleted?")
-				raise ResolverError('No Encoded Section Found. Deleted?')
-			sPattern = '\(tmp\.slice\(-1\)\.charCodeAt\(0\) \+ ([0-9]+)\)'
-			aResult = self.parse(code, sPattern)
+		sPattern = 'var j=([a-z])\.charCodeAt'
+		aResult = self.parse(code, sPattern)
+		if (aResult[0]):
+			Hiddenvar = re.search('var j=([a-z])\.charCodeAt', code).group(1)
+		sPattern = 'var ' + Hiddenvar + ' = \$\("#([^"]+)"\)'
+		aResult = self.parse(code, sPattern)
+		if (aResult[0]):
+			for i in TabUrl:
+				if aResult[1][0] == i[0]:
+					hideenurl = i[1]
+		if not(hideenurl):
+			log("No Encoded Section Found. Deleted?")
+			raise ResolverError('No Encoded Section Found. Deleted?')
 
-			val = 3
-			if (aResult[0]):
-				val = int(aResult[1][0])
+		string = self.unescape(hideenurl)
+		url = ''
 
-			string = self.unescape(hideenurl)
-			url = ''
-			if 'magic' in code:
-				magic = ord(string[-1])
-			else:
-				magic = -1
-			for c in string:
-				v = ord(c)
-				if v == magic:
-					v -= 1
-				elif v == magic - 1:
-					v += 1
-				if v >= 33 and v <= 126:
-					v = ((v + 14) % 94) + 33
-				url = url + chr(v)
-			url = url[:-1] + chr(ord(url[-1]) + val)
-			
-			api_call = "https://openload.co/stream/" + url + "?mime=true"
-			api_call = self.GetOpenloadUrl(api_call)
+		for c in string:
+			v = ord(c)
+			if v >= 33 and v <= 126:
+				v = ((v+14)%94)+33
+			url = url +chr(v)
+		url = JsParser().ProcessJS(code, url)
+		if not (url):
+			log("Error not url")
+			raise ResolverError('Error not url')
+		api_call = "https://openload.co/stream/" + url + "?mime=true"
+		api_call = self.GetOpenloadUrl(api_call, urlF)
 
-			if not (api_call):
-				url0 = url[:-1] + chr(ord(url[-1]) - val)
-				for i in range(0,3):
-					if i != val:
-						url2 = url0[:-1] + chr(ord(url0[-1]) + i)
-						url2 = "https://openload.co/stream/" + url2 + "?mime=true"
-						url3 = self.GetOpenloadUrl(url2)
-						if (url3):
-							api_call = url3
+		if not (api_call):
+			url0 = url[:-1]+chr(ord(url[-1])-val)
+			for i in range(1,3):
+				if i != val:
+					url2 = url0[:-1]+chr(ord(url0[-1])+1)
+					url2 = "https://openload.co/stream/" + url2 + "?mime=true"
+					url3 = self.GetOpenloadUrl(url2, urlF)
+					xbmc.sleep(2000)
+					if (url3):
+						api_call = url3
 
-			if 'KDA_8nZ2av4/x.mp4' in api_call:
-				raise ResolverError('Openload.co resolve failed')
-			log(api_call)
-			return api_call
-		except Exception as e:
+		if 'KDA_8nZ2av4/x.mp4' in api_call:
+			raise ResolverError('Openload.co resolve failed')
+		if url == api_call:
+			api_call = ''
+			raise ResolverError('pigeon url : ' + api_call)
+		
+		log(api_call)
+		return api_call
+		"""except Exception as e:
 			self.messageOk('MrPiracy.win', 'Ocorreu um erro a obter o link. Escolha outro servidor.')
 		except ResolverError:
-			self.messageOk('MrPiracy.win', 'Ocorreu um erro a obter o link. Escolha outro servidor.')
+			self.messageOk('MrPiracy.win', 'Ocorreu um erro a obter o link. Escolha outro servidor.')"""
 
 	def getId(self):
 		#return self.url.split('/')[-1]
 		try:
-			return re.compile('https\:\/\/openload\.co\/embed\/(.+?)\/').findall(self.url)[0]
+			try:
+				return re.compile('https\:\/\/openload\.co\/embed\/(.+?)').findall(self.url)[0]
+			except:
+				return re.compile('https\:\/\/openload\.co\/embed\/(.+?)\/').findall(self.url)[0]
 		except:
 			return re.compile('https\:\/\/openload.co\/f\/(.+?)\/').findall(self.url)[0]
 
@@ -310,14 +367,28 @@ class OpenLoad():
 	def parseInt(self, sin):
 		return int(''.join([c for c in re.split(r'[,.]',str(sin))[0] if c.isdigit()])) if re.match(r'\d+', str(sin), re.M) and not callable(sin) else None
 
-	def GetOpenloadUrl(self, url):
-		finalurl = ''
+	def GetOpenloadUrl(self, url, referer):
 		if 'openload.co/stream' in url:
-			headers = {'User-Agent': 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.11 (KHTML, like Gecko) Chrome/23.0.1271.64 Safari/537.11' }
+
+			headers = {'User-Agent': 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.11 (KHTML, like Gecko) Chrome/23.0.1271.64 Safari/537.11', 'Referer':referer }
+
 			req = urllib2.Request(url,None,headers)
 			res = urllib2.urlopen(req)
 			finalurl = res.geturl()
-		return finalurl
+
+			if 'KDA_8nZ2av4/x.mp4' in finalurl:
+				print('pigeon url : ' + url)
+				finalurl = ''
+			if 'Content-Length' in res.info():
+				if res.info()['Content-Length'] == '33410733':
+					print('pigeon url : ' + url)
+					finalurl = ''
+			if url == finalurl:
+				print('Bloquage')
+				finalurl = ''
+
+			return finalurl
+		return url
 
 	def CheckCpacker(self, str):
 		sPattern = '(\s*eval\s*\(\s*function(?:.|\s)+?{}\)\))'

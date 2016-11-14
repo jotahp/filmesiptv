@@ -1,3 +1,7 @@
+v0.3.8(14/11/2016)
+- Alteração completa do addon.
+- Novos servidores e código novo.
+
 v0.3.7 (26/10/2016)
 - Servidores Fix.
 
