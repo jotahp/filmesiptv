@@ -147,6 +147,21 @@ def abrir_url(url, post=None, header=None, code=False, erro=False):
 
     link=response.read()
 
+    if 'myapimp.tk' in url:
+        coiso = json.loads(link)
+        if 'error' in coiso:
+            if coiso['error'] == 'access_denied':
+                headers['Authorization'] = 'Bearer %s' % addon.getSetting('tokenMrpiracy')
+                dados = {'refresh_token': addon.getSetting('refreshMrpiracy'),'grant_type': 'refresh_token', 'client_id': 'kodi', 'client_secret':'pyRmmKK3cbjouoDMLXNtt2eGkyTTAG' }
+                resultado = abrir_url('http://myapimp.tk/api/token/refresh',post=json.dumps(dados), headers=controlo.headers)
+                resultado = json.loads(resultado)
+                addon.setSetting('tokenMrpiracy', resultado['access_token'])
+                addon.setSetting('refreshMrpiracy', resultado['refresh_token'])
+                if post:
+                    return abrir_url(url, post=post, headers=header)
+                else:
+                    return abrir_url(url, headers=header)
+                
     if 'judicial' in link:
         return 'DNS'
     if code:

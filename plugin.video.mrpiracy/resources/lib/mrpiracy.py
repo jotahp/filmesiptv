@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 
-import urlparse,json,zlib,hashlib,time,re,os,sys,xbmc,xbmcgui,xbmcplugin,xbmcvfs,pprint
+import urlparse,json,zlib,hashlib,time,re,os,sys,xbmc,xbmcgui,xbmcplugin,xbmcvfs,pprint, base64
 
 import controlo
 import Player
@@ -15,8 +15,8 @@ sys.setdefaultencoding('utf8')
 class mrpiracy:
 
 	def __init__(self):
-		self.API_SITE = 'http://mrpiracy.win/api/'
-		self.SITE = 'http://mrpiracy.win/'
+		self.API_SITE = base64.urlsafe_b64decode('aHR0cDovL215YXBpbXAudGsvYXBpLw==')
+		self.SITE = base64.urlsafe_b64decode('aHR0cDovL21ycGlyYWN5Lm1sLw==')
 	
 	def definicoes(self):
 		controlo.addon.openSettings()
@@ -34,34 +34,48 @@ class mrpiracy:
 			controlo.addDir('Animes', self.API_SITE+'animes', 'menuAnimes', os.path.join(controlo.artFolder, controlo.skin, 'animes.png'))
 			controlo.addDir('Pesquisa', self.API_SITE+'pesquisa', 'pesquisa', os.path.join(controlo.artFolder, controlo.skin, 'procurar.png'))
 			controlo.addDir('', '', '', os.path.join(controlo.artFolder, controlo.skin, 'nada.png'))
+			if Trakt.loggedIn():
+				self.getTrakt()
+				controlo.addDir('Trakt', self.API_SITE+'me', 'menuTrakt', os.path.join(controlo.artFolder, controlo.skin, 'trakt.png'))
 			controlo.addDir('A Minha Conta '+self.getNumNotificacoes(), self.API_SITE+'me', 'conta', os.path.join(controlo.artFolder, controlo.skin, 'definicoes.png'))
 			controlo.addDir('Definições', self.API_SITE, 'definicoes', os.path.join(controlo.artFolder, controlo.skin, 'definicoes.png'))
 			
-			if Trakt.loggedIn():
-				self.getTrakt()
+			
 		else:
 			controlo.addDir('Alterar Definições', 'url', 'definicoes', os.path.join(controlo.artFolder, controlo.skin, 'definicoes.png'))
 			controlo.addDir('Entrar novamente', 'url', 'inicio', os.path.join(controlo.artFolder, controlo.skin, 'retroceder.png'))
+	def loginTrakt(self):
+		Trakt.traktAuth()
 	def getTrakt(self):
 		url = 'https://api-v2launch.trakt.tv/users/%s/watched/movies' % controlo.addon.getSetting('utilizadorTrakt')
 		filmes = Trakt.getTrakt(url, login=False)
 		url = 'https://api-v2launch.trakt.tv/users/%s/watched/shows' % controlo.addon.getSetting('utilizadorTrakt')
 		series = Trakt.getTrakt(url, login=False)
 		#insertTraktDB(filmes, series, data)
-		Database.insertTraktDB(filmes, series, controlo.dataHoras)
+		url = 'https://api-v2launch.trakt.tv/sync/watchlist/movies'
+		watchlistFilmes = Trakt.getTrakt(url)
+		url = 'https://api-v2launch.trakt.tv/sync/watchlist/shows'
+		watchlistSeries = Trakt.getTrakt(url)
+		url = 'https://api-v2launch.trakt.tv/users/%s/watched/shows' % controlo.addon.getSetting('utilizadorTrakt')
+		progresso = Trakt.getTrakt(url, login=False)
+		Database.insertTraktDB(filmes, series, watchlistFilmes, watchlistSeries, progresso, controlo.dataHoras)
 	def menuFilmes(self):
 		controlo.addDir('Todos os Filmes', self.API_SITE+'filmes', 'filmes', os.path.join(controlo.artFolder, controlo.skin, 'filmes.png'))
-		controlo.addDir('Filmes em Destaque', self.API_SITE+'filmes/destaque', 'filmes', os.path.join(controlo.artFolder, controlo.skin, 'ano.png'))
+		controlo.addDir('Filmes em Destaque', self.API_SITE+'filmes/destaque', 'filmes', os.path.join(controlo.artFolder, controlo.skin, 'filmes.png'))
 		controlo.addDir('Filmes por Ano', self.API_SITE+'filmes/ano', 'listagemAnos', os.path.join(controlo.artFolder, controlo.skin, 'ano.png'))
 		controlo.addDir('Filmes por Genero', self.API_SITE+'filmes/categoria', 'listagemGeneros', os.path.join(controlo.artFolder, controlo.skin, 'generos.png'))
+	def menuTrakt(self):
+		controlo.addDir('Progresso', self.API_SITE+'filmes', 'progressoTrakt', os.path.join(controlo.artFolder, controlo.skin, 'trakt.png'))
+		controlo.addDir('Watchlist Filmes', self.API_SITE+'filmes/destaque', 'traktWatchlistFilmes', os.path.join(controlo.artFolder, controlo.skin, 'trakt.png'))
+		controlo.addDir('Watchlist Series', self.API_SITE+'filmes/ano', 'traktWatchlistSeries', os.path.join(controlo.artFolder, controlo.skin, 'trakt.png'))
 	def menuSeries(self):
-		controlo.addDir('Todos as Séries', self.API_SITE+'series', 'series', os.path.join(controlo.artFolder, controlo.skin, 'filmes.png'))
-		controlo.addDir('Séries em Destaque', self.API_SITE+'series/destaque', 'series', os.path.join(controlo.artFolder, controlo.skin, 'ano.png'))
+		controlo.addDir('Todos as Séries', self.API_SITE+'series', 'series', os.path.join(controlo.artFolder, controlo.skin, 'series.png'))
+		controlo.addDir('Séries em Destaque', self.API_SITE+'series/destaque', 'series', os.path.join(controlo.artFolder, controlo.skin, 'series.png'))
 		controlo.addDir('Séries por Ano', self.API_SITE+'series/ano', 'listagemAnos', os.path.join(controlo.artFolder, controlo.skin, 'ano.png'))
 		controlo.addDir('Séries por Genero', self.API_SITE+'series/categoria', 'listagemGeneros', os.path.join(controlo.artFolder, controlo.skin, 'generos.png'))
 	def menuAnimes(self):
-		controlo.addDir('Todos os Animes', self.API_SITE+'animes', 'animes', os.path.join(controlo.artFolder, controlo.skin, 'filmes.png'))
-		controlo.addDir('Animes em Destaque', self.API_SITE+'animes/destaque', 'animes', os.path.join(controlo.artFolder, controlo.skin, 'ano.png'))
+		controlo.addDir('Todos os Animes', self.API_SITE+'animes', 'animes', os.path.join(controlo.artFolder, controlo.skin, 'animes.png'))
+		controlo.addDir('Animes em Destaque', self.API_SITE+'animes/destaque', 'animes', os.path.join(controlo.artFolder, controlo.skin, 'animes.png'))
 		controlo.addDir('Animes por Ano', self.API_SITE+'animes/ano', 'listagemAnos', os.path.join(controlo.artFolder, controlo.skin, 'ano.png'))
 		controlo.addDir('Animes por Genero', self.API_SITE+'animes/categoria', 'listagemGeneros', os.path.join(controlo.artFolder, controlo.skin, 'generos.png'))
 	def login(self):
@@ -158,7 +172,7 @@ class mrpiracy:
 			except:
 				nome = i['nome_ingles'].encode('utf-8')
 			if 'http' not in i['foto']:
-				i['foto'] = 'http://mrpiracy.win/images/capas/'+i['foto'].split('/')[-1]
+				i['foto'] = self.SITE+'images/capas/'+i['foto'].split('/')[-1]
 			if i['tipoVideo'] == 'filme':
 				infoLabels = {'Title': i['nome_ingles'], 'Year': i['ano'], 'Genre': categoria, 'Plot': i['descricao_video'], 'Cast':i['atores'].split(','), 'Trailer': i['trailer'], 'Director': i['diretor'], 'Rating': i['imdbRating'], 'IMDBNumber': i['IMBD'] }
 				controlo.addVideo(nome+' ('+i['ano']+')', self.API_SITE+'filme/'+str(i['id_video']), 'player', i['foto'],visto, 'filme', 0, 0, infoLabels, self.SITE+i['background'], trailer=i['trailer'])
@@ -208,7 +222,7 @@ class mrpiracy:
 			except:
 				nome = i['nome_ingles'].encode('utf-8')
 			if 'http' not in i['foto']:
-				i['foto'] = 'http://mrpiracy.win/images/capas/'+i['foto'].split('/')[-1]
+				i['foto'] = self.SITE+'images/capas/'+i['foto'].split('/')[-1]
 			if i['tipoVideo'] == 'filme':
 				infoLabels = {'Title': i['nome_ingles'], 'Year': i['ano'], 'Genre': categoria, 'Plot': i['descricao_video'], 'Cast':i['atores'].split(','), 'Trailer': i['trailer'], 'Director': i['diretor'], 'Rating': i['imdbRating'], 'IMDBNumber': i['IMBD'] }
 				controlo.addVideo(nome+' ('+i['ano']+')', self.API_SITE+'filme/'+str(i['id_video']), 'player', i['foto'],visto, 'filme', 0, 0, infoLabels, self.SITE+i['background'], trailer=i['trailer'])
@@ -241,16 +255,16 @@ class mrpiracy:
 					categoria += ','+resultado['categoria3']
 
 				
-				if 'PT' in i['IMBD']:
-					i['IMBD'] = re.compile('(.+?)PT').findall(i['IMBD'])[0]
-				if i['visto'] == 1:
+				if 'PT' in resultado['IMBD']:
+					resultado['IMBD'] = re.compile('(.+?)PT').findall(resultado['IMBD'])[0]
+				if resultado['visto'] == 1:
 					visto = True
 				else:			
 					if Trakt.loggedIn():
 						for v in json.loads(vistos[1]):
 							if v["movie"]["ids"]["imdb"] is None:
 								continue
-							if v["movie"]["ids"]["imdb"] == i['IMBD']:
+							if v["movie"]["ids"]["imdb"] == resultado['IMBD']:
 								visto = True
 								break
 							else:
@@ -263,7 +277,7 @@ class mrpiracy:
 				except:
 					nome = resultado['nome_ingles'].encode('utf-8')
 				if 'http' not in resultado['foto']:
-					resultado['foto'] = 'http://mrpiracy.win/images/capas/'+resultado['foto'].split('/')[-1]
+					resultado['foto'] = self.SITE+'images/capas/'+resultado['foto'].split('/')[-1]
 		
 				infoLabels = {'Title': resultado['nome_ingles'], 'Year': resultado['ano'], 'Genre': categoria, 'Plot':resultado['descricao_video'], 'Cast':resultado['atores'].split(','), 'Trailer': resultado['trailer'], 'Director': resultado['diretor'], 'Rating': resultado['imdbRating'], 'IMDBNumber': resultado['IMBD'] }
 				controlo.addVideo(i['mensagem'], self.API_SITE+'filme/'+str(resultado['id_video']), 'player', resultado['foto'],visto, 'filme', 0, 0, infoLabels, self.SITE+resultado['background'], trailer=resultado['trailer'])
@@ -280,7 +294,7 @@ class mrpiracy:
 				except:
 					nome = resultado['nome_ingles'].encode('utf-8')
 				if 'http' not in resultado['foto']:
-					resultado['foto'] = 'http://mrpiracy.win/images/capas/'+resultado['foto'].split('/')[-1]
+					resultado['foto'] = self.SITE+'images/capas/'+resultado['foto'].split('/')[-1]
 		
 				infoLabels = {'Title': resultado['nome_ingles'], 'Year': resultado['ano'], 'Genre': categoria, 'Plot': resultado['descricao_video'], 'Cast':resultado['atores'].split(','), 'Trailer': resultado['trailer'], 'Director': resultado['diretor'], 'Rating': resultado['imdbRating'], 'Code': resultado['IMBD'] }
 				controlo.addDir(i['mensagem'], self.API_SITE+i['tipoVideo']+'/'+str(resultado['id_video']), 'temporadas', resultado['foto'], tipo='serie', infoLabels=infoLabels, poster=self.SITE+resultado['background'])
@@ -350,7 +364,7 @@ class mrpiracy:
 			except:
 				nome = i['nome_ingles'].encode('utf-8')
 			if 'http' not in i['foto']:
-				i['foto'] = 'http://mrpiracy.win/images/capas/'+i['foto'].split('/')[-1]
+				i['foto'] = self.SITE+'images/capas/'+i['foto'].split('/')[-1]
 			controlo.addVideo(nome+' ('+i['ano']+')', self.API_SITE+'filme/'+str(i['id_video']), 'player', i['foto'],visto, 'filme', 0, 0, infoLabels, self.SITE+i['background'], trailer=i['trailer'])
 			
 		current = resultado['meta']['pagination']['current_page']
@@ -385,7 +399,7 @@ class mrpiracy:
 			except:
 				nome = i['nome_ingles'].encode('utf-8')
 			if 'http' not in i['foto']:
-				i['foto'] = 'http://mrpiracy.win/images/capas/'+i['foto'].split('/')[-1]
+				i['foto'] = self.SITE+'images/capas/'+i['foto'].split('/')[-1]
 			controlo.addVideo(nome+' ('+i['ano']+')', self.API_SITE+'filme/'+str(i['id_video']), 'player', i['foto'],visto, 'filme', 0, 0, infoLabels, self.SITE+i['background'], trailer=i['trailer'])
 			
 		current = resultado['meta']['pagination']['current_page']
@@ -419,7 +433,7 @@ class mrpiracy:
 			except:
 				nome = i['nome_ingles'].encode('utf-8')
 			if 'http' not in i['foto']:
-				i['foto'] = 'http://mrpiracy.win/images/capas/'+i['foto'].split('/')[-1]
+				i['foto'] = self.SITE+'images/capas/'+i['foto'].split('/')[-1]
 			if i['visto'] == 1:
 				visto=True
 			else:
@@ -456,7 +470,7 @@ class mrpiracy:
 			except:
 				nome = i['nome_ingles'].encode('utf-8')
 			if 'http' not in i['foto']:
-				i['foto'] = 'http://mrpiracy.win/images/capas/'+i['foto'].split('/')[-1]
+				i['foto'] = self.SITE+'images/capas/'+i['foto'].split('/')[-1]
 			if i['visto'] == 1:
 				visto=True
 			else:
@@ -492,11 +506,15 @@ class mrpiracy:
 			tipo = 'serie'
 		elif 'anime' in url:
 			tipo = 'anime'
+		xbmc.log(url)
 		controlo.headers['Authorization'] = 'Bearer %s' % controlo.addon.getSetting('tokenMrpiracy')
 		resultadoS = controlo.abrir_url(self.API_SITE+tipo+'/'+url.split('/')[5], header=controlo.headers)
 		resultadoS = json.loads(resultadoS)
 		vistos = Database.selectTraktDB()
 		for i in resultado['data']:
+			if i['URL'] == '' and i['URL2'] == '':
+				continue
+
 			infoLabels = {'Title': i['nome_episodio'], 'Code': i['IMBD'], 'Episode': i['episodio'], 'Season': i['temporada'] }
 			try:
 				nome = i['nome_episodio'].decode('utf-8')
@@ -504,35 +522,47 @@ class mrpiracy:
 				nome = i['nome_episodio'].encode('utf-8')
 			if 'PT' in i['IMBD']:
 				i['IMBD'] = re.compile('(.+?)PT').findall(i['IMBD'])[0]
+			vistoe = False
 			if i['visto'] == 1:
 				visto = True
 			else:
-				if Trakt.loggedIn():
+				if Trakt.loggedIn():			
+					ep = i['episodio']
+					if '/' in i['episodio']:
+						ep = i['episodio'].split('/')[0]
+					if 'e' in i['episodio']:
+						ep = i['episodio'].split('e')[0]
 					for v in json.loads(vistos[2]):
 						if v["show"]["ids"]["imdb"] is None:
+							visto = False
 							continue
-						for s in v["seasons"]:
-							if int(s['number']) == int(i['temporada']):
-								for e in s['episodes']:
-									if int(e["number"]) == int(i['episodio']):
-										visto = True
-										break
-									else:
-										visto = False
-						if v["show"]["ids"]["imdb"] == resultadoS['IMBD']:
-							break
+						if v["show"]["ids"]["imdb"] != i['imdbSerie']:
+							visto = False
+							continue
+						else:
+							for s in v["seasons"]:
+								if int(s['number']) == int(i['temporada']):
+									for e in s['episodes']:
+										if int(e["number"]) == int(ep):
+											vistoe = True
+											break
+										else:
+											vistoe = False
 				else:
 					visto = False
 						
+			if vistoe:
+				visto = True
 
 			if i['imagem'] == 1:
-				imagem = 'http://mrpiracy.win/images/capas/'+i['IMBD']+'.jpg'
+				imagem = self.SITE+'images/capas/'+i['IMBD']+'.jpg'
 			elif i['imagem'] == 0:
 				if 'http' not in resultadoS['foto']:
-					imagem = 'http://mrpiracy.win/images/capas/'+resultadoS['foto'].split('/')[-1]
+					imagem = self.SITE+'images/capas/'+resultadoS['foto'].split('/')[-1]
 				else:
 					imagem = resultadoS['foto']
-			controlo.addVideo('[B]Episodio '+str(i['episodio'])+'[/B] '+nome, self.API_SITE+tipo+'/'+str(i['id_serie'])+'/temporada/'+str(i['temporada'])+'/episodio/'+str(i['episodio']), 'player', imagem, visto, 'episodio', i['temporada'], i['episodio'], infoLabels, self.SITE+i['background'])
+			xbmc.log(self.API_SITE+tipo+'/'+str(i['id_serie'])+'/episodio/'+str(i['id_episodio']))
+			controlo.addVideo('[B]Episodio '+str(i['episodio'])+'[/B] '+nome, self.API_SITE+tipo+'/'+str(i['id_serie'])+'/episodio/'+str(i['id_episodio']), 'player', imagem, visto, 'episodio', i['temporada'], i['episodio'], infoLabels, self.SITE+i['background'])
 	def listagemAnos(self, url):
 		conteudo = controlo.abrir_url(self.SITE+'filmes.php', header=controlo.headers)
 		if conteudo == 'DNS':
@@ -595,7 +625,7 @@ class mrpiracy:
 				except:
 					nome = resultado['nome_ingles'].encode('utf-8')
 				if 'http' not in resultado['foto']:
-					resultado['foto'] = 'http://mrpiracy.win/images/capas/'+resultado['foto'].split('/')[-1]
+					resultado['foto'] = self.SITE+'images/capas/'+resultado['foto'].split('/')[-1]
 		
 				infoLabels = {'Title': resultado['nome_ingles'], 'Year': resultado['ano'], 'Genre': categoria, 'Plot':resultado['descricao_video'], 'Cast':resultado['atores'].split(','), 'Trailer': resultado['trailer'], 'Director': resultado['diretor'], 'Rating': resultado['imdbRating'], 'IMDBNumber': resultado['IMBD'] }
 				controlo.addVideo(nome+' ('+i['ano']+')', self.API_SITE+'filme/'+str(resultado['id_video']), 'player', resultado['foto'],visto, 'filme', 0, 0, infoLabels, self.SITE+resultado['background'], trailer=resultado['trailer'])
@@ -616,7 +646,7 @@ class mrpiracy:
 				except:
 					nome = resultado['nome_ingles'].encode('utf-8')
 				if 'http' not in resultado['foto']:
-					resultado['foto'] = 'http://mrpiracy.win/images/capas/'+resultado['foto'].split('/')[-1]
+					resultado['foto'] = self.SITE+'images/capas/'+resultado['foto'].split('/')[-1]
 				if resultado['visto'] == 1:
 					visto=True
 				else:
@@ -653,7 +683,7 @@ class mrpiracy:
 				except:
 					nome = resultado['nome_ingles'].encode('utf-8')
 				if 'http' not in resultado['foto']:
-					resultado['foto'] = 'http://mrpiracy.win/images/capas/'+resultado['foto'].split('/')[-1]
+					resultado['foto'] = self.SITE+'images/capas/'+resultado['foto'].split('/')[-1]
 				
 				if 'PT' in i['IMBD']:
 					i['IMBD'] = re.compile('(.+?)PT').findall(i['IMBD'])[0]
@@ -690,7 +720,7 @@ class mrpiracy:
 				except:
 					nome = resultado['nome_ingles'].encode('utf-8')
 				if 'http' not in resultado['foto']:
-					resultado['foto'] = 'http://mrpiracy.win/images/capas/'+resultado['foto'].split('/')[-1]
+					resultado['foto'] = self.SITE+'images/capas/'+resultado['foto'].split('/')[-1]
 				if resultado['visto'] == 1:
 					visto=True
 				else:
@@ -795,11 +825,11 @@ class mrpiracy:
 			pass
 		legenda = ''
 		if '://' in resultado['legenda']:
-			legenda = 'http://mrpiracy.win/subs/%s.srt' % resultado['IMBD']
+			legenda = self.SITE+'subs/%s.srt' % resultado['IMBD']
 		elif resultado['legenda'] != '':
 			if not '.srt' in resultado['legenda']:
 				resultado['legenda'] = resultado['legenda']+'.srt'
-			legenda = 'http://mrpiracy.win/subs/%s' % resultado['legenda']
+			legenda = self.SITE+'subs/%s' % resultado['legenda']
 		ext_g = 'coiso'
 		if len(titulos) > 1:
 			servidor = controlo.select('Escolha o servidor', titulos)
@@ -919,7 +949,7 @@ class mrpiracy:
 					except:
 						nome = i['nome_ingles'].encode('utf-8')
 					if 'http' not in i['foto']:
-						i['foto'] = 'http://mrpiracy.win/images/capas/'+i['foto'].split('/')[-1]
+						i['foto'] = self.SITE+'images/capas/'+i['foto'].split('/')[-1]
 					if 'PT' in i['IMBD']:
 						i['IMBD'] = re.compile('(.+?)PT').findall(i['IMBD'])[0]
 					if i['visto'] == 1:
@@ -953,7 +983,7 @@ class mrpiracy:
 					except:
 						nome = i['nome_ingles'].encode('utf-8')
 					if 'http' not in i['foto']:
-						i['foto'] = 'http://mrpiracy.win/images/capas/'+i['foto'].split('/')[-1]
+						i['foto'] = self.SITE+'images/capas/'+i['foto'].split('/')[-1]
 					if tipo == 1:
 						link = 'serie'
 					elif tipo == 2:
@@ -1089,3 +1119,160 @@ class mrpiracy:
 		command={'&#8220;':'"','&#8221;':'"', '&#8211;':'-','&amp;':'&','&#8217;':"'",'&#8216;':"'"}
 		regex = re.compile("|".join(map(re.escape, command.keys())))
 		return regex.sub(lambda mo: command[mo.group(0)], text)
+	def progressoTrakt(self):
+
+		vistos = Database.selectTraktDB()
+		controlo.headers['Authorization'] = 'Bearer %s' % controlo.addon.getSetting('tokenMrpiracy')
+		for serie in json.loads(vistos[5]):
+			url = 'https://api-v2launch.trakt.tv/shows/%s/progress/watched?hidden=false&specials=false' % serie["show"]["ids"]["slug"]
+			data = Trakt.getTrakt(url)
+			if data == "asd":
+				continue
+			data = json.loads(data)
+		
+			try:
+				episodioN = str(data["next_episode"]["number"])
+				temporadaNumero = str(data["next_episode"]["season"])
+			except:
+				continue
+
+			if serie["show"]["ids"]["imdb"] is None:
+				continue
+
+			
+			url = self.API_SITE+'serie/%s/temporada/%s/episodio/%s/imdb' % (serie["show"]["ids"]["imdb"],temporadaNumero, episodioN )
+			resultado = controlo.abrir_url(url, header=controlo.headers)
+			if resultado == 'DNS':
+				controlo.alerta('MrPiracy', 'Tem de alterar os DNS para poder usufruir do addon')
+				return False
+			tipo = 'serie'
+			try:
+				resultado = json.loads(resultado)
+			except ValueError:
+				continue
+			if 'codigo' in resultado:
+				url = self.API_SITE+'anime/%s/temporada/%s/episodio/%s/imdb' % (serie["show"]["ids"]["imdb"],temporadaNumero, episodioN )
+				resultado = controlo.abrir_url(url, header=controlo.headers)
+				if resultado == 'DNS':
+					controlo.alerta('MrPiracy', 'Tem de alterar os DNS para poder usufruir do addon')
+					return False
+				tipo = 'anime'
+				xbmc.log(serie["show"]["ids"]["imdb"]+" "+resultado)
+				try:
+					resultado = json.loads(resultado)
+				except ValueError:
+					continue
+			if 'codigo' in resultado:
+				continue
+
+			if resultado['URL'] == '' and resultado['URL2'] == '':
+				continue
+
+			infoLabels = {'Title': resultado['nome_episodio'], 'Code': resultado['IMBD'], 'Episode': resultado['episodio'], 'Season': resultado['temporada'] }
+			try:
+				nome = resultado['nome_episodio'].decode('utf-8')
+			except:
+				nome = resultado['nome_episodio'].encode('utf-8')
+			
+			if resultado['imagem'] == 1:
+				imagem = self.SITE+'images/capas/'+resultado['IMBD']+'.jpg'
+			elif resultado['imagem'] == 0:
+				if 'http' not in resultado['fotoSerie']:
+					imagem = self.SITE+'images/capas/'+resultado['fotoSerie'].split('/')[-1]
+				else:
+					imagem = resultado['fotoSerie']
+			controlo.addVideo('[B]'+resultado['nomeSerie']+'[/B] '+temporadaNumero+'x'+episodioN+' . '+nome, self.API_SITE+tipo+'/'+str(resultado['id_serie'])+'/temporada/'+str(resultado['temporada'])+'/episodio/'+str(resultado['episodio']), 'player', imagem, False, 'episodio', resultado['temporada'], resultado['episodio'], infoLabels, self.SITE+resultado['background'])
+
+	def watchlistFilmes(self):
+		vistos = Database.selectTraktDB()
+		controlo.headers['Authorization'] = 'Bearer %s' % controlo.addon.getSetting('tokenMrpiracy')
+		for f in json.loads(vistos[3]):
+			if f["movie"]["ids"]["imdb"] is None:
+				continue
+			imdb = f["movie"]["ids"]["imdb"]
+			url = self.API_SITE+'filme/%s/imdb' % (imdb)
+			resultado = controlo.abrir_url(url, header=controlo.headers)
+			if resultado == 'DNS':
+				controlo.alerta('MrPiracy', 'Tem de alterar os DNS para poder usufruir do addon')
+				return False
+			resultado = json.loads(resultado)
+			if 'codigo' in resultado:
+				continue
+			categoria = resultado['categoria1']
+			if resultado['categoria2'] != '':
+				categoria += ','+resultado['categoria2']
+			if resultado['categoria3'] != '':
+				categoria += ','+resultado['categoria3']
+			
+			
+			if 'PT' in resultado['IMBD']:
+				resultado['IMBD'] = re.compile('(.+?)PT').findall(resultado['IMBD'])[0]
+			if resultado['visto'] == 1:
+				visto = True
+			else:			
+				visto = False
+			infoLabels = {'Title': resultado['nome_ingles'], 'Year': resultado['ano'], 'Genre': categoria, 'Plot': resultado['descricao_video'], 'Cast':resultado['atores'].split(','), 'Trailer': resultado['trailer'], 'Director': resultado['diretor'], 'Rating': resultado['imdbRating'], 'IMDBNumber': resultado['IMBD'] }
+			
+			try:
+				nome = resultado['nome_ingles'].decode('utf-8')
+			except:
+				nome = resultado['nome_ingles'].encode('utf-8')
+			if 'http' not in resultado['foto']:
+				resultado['foto'] = self.SITE+'images/capas/'+resultado['foto'].split('/')[-1]
+			controlo.addVideo(nome+' ('+resultado['ano']+')', self.API_SITE+'filme/'+str(resultado['id_video']), 'player', resultado['foto'],visto, 'filme', 0, 0, infoLabels, self.SITE+resultado['background'], trailer=resultado['trailer'])
+		 
+
+	def watchlistSeries(self):
+		vistos = Database.selectTraktDB()
+		controlo.headers['Authorization'] = 'Bearer %s' % controlo.addon.getSetting('tokenMrpiracy')
+		for s in json.loads(vistos[4]):
+			if s["show"]["ids"]["imdb"] is None:
+				continue
+			imdb = s["show"]["ids"]["imdb"]
+		
+			
+			url = self.API_SITE+'serie/%s/imdb' % (s["show"]["ids"]["imdb"] )
+			resultado = controlo.abrir_url(url, header=controlo.headers)
+			if resultado == 'DNS':
+				controlo.alerta('MrPiracy', 'Tem de alterar os DNS para poder usufruir do addon')
+				return False
+			tipo = 'serie'
+			try:
+				resultado = json.loads(resultado)
+			except ValueError:
+				continue
+			if 'codigo' in resultado:
+				url = self.API_SITE+'anime/%s/imdb' % (s["show"]["ids"]["imdb"] )
+				resultado = controlo.abrir_url(url, header=controlo.headers)
+				if resultado == 'DNS':
+					controlo.alerta('MrPiracy', 'Tem de alterar os DNS para poder usufruir do addon')
+					return False
+				tipo = 'anime'
+				try:
+					resultado = json.loads(resultado)
+				except ValueError:
+					continue
+			if 'codigo' in resultado:
+				continue
+			
+
+			categoria = resultado['categoria1']
+			if resultado['categoria2'] != '':
+				categoria += ','+resultado['categoria2']
+			if resultado['categoria3'] != '':
+				categoria += ','+resultado['categoria3']
+
+			infoLabels = {'Title': resultado['nome_ingles'], 'Year': resultado['ano'], 'Genre': categoria, 'Plot': resultado['descricao_video'], 'Cast':resultado['atores'].split(','), 'Trailer': resultado['trailer'], 'Director': resultado['diretor'], 'Rating': resultado['imdbRating'], 'Code': resultado['IMBD'] }
+		
+			try:
+				nome = resultado['nome_ingles'].decode('utf-8')
+			except:
+				nome = resultado['nome_ingles'].encode('utf-8')
+			if 'http' not in resultado['foto']:
+				resultado['foto'] = self.SITE+'images/capas/'+resultado['foto'].split('/')[-1]
+			if resultado['visto'] == 1:
+				visto=True
+			else:
+				visto=False
+			controlo.addDir(nome+' ('+resultado['ano']+')', self.API_SITE+tipo+'/'+str(resultado['id_video']), 'temporadas', resultado['foto'], tipo='serie', infoLabels=infoLabels,poster=self.SITE+resultado['background'],visto=visto)
+			

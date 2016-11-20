@@ -36,7 +36,7 @@ class Player(xbmc.Player):
         self.pastaData = xbmc.translatePath(pastaData)
         self.nome = nome
         self.logo = logo
-        self.API_SITE = base64.urlsafe_b64decode('aHR0cDovL21ycGlyYWN5Lndpbi9hcGkv')
+        self.API_SITE = base64.urlsafe_b64decode('aHR0cDovL215YXBpbXAudGsvYXBpLw==')
 
         if not xbmcvfs.exists(os.path.join(pastaData,'tracker')):
             xbmcvfs.mkdirs(os.path.join(pastaData,'tracker'))
@@ -83,7 +83,7 @@ class Player(xbmc.Player):
         if (self.tempo/self.tempoTotal > 0.90):
 
             #self.adicionarVistoBiblioteca()
-            #self.adicionarVistoSite()
+            self.adicionarVistoSite()
 
             try:
                 xbmcvfs.delete(self.pastaVideo)

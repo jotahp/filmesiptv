@@ -63,7 +63,10 @@ class RapidVideo():
 
 		sPattern =  '"file":"([^"]+)","label":"([0-9]+)p"'
 		aResult = self.parse(sourceCode, sPattern)
-		self.legenda = re.compile('"file":"([^"]+)","label":".+?","kind":"captions"').findall(sourceCode)[0]
+		try:
+			self.legenda = re.compile('"file":"([^"]+)","label":".+?","kind":"captions"').findall(sourceCode)[0]
+		except:
+			self.legenda = ''
 		videoUrl = ''
 		if aResult[0]:
 			links = []

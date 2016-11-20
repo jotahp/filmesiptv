@@ -62,5 +62,14 @@ elif modo == 'marcar-visto':
 	mrpiracy.mrpiracy().marcarVisto(url)
 elif modo == 'download':
 	mrpiracy.mrpiracy().download(url)
-
+elif modo == 'menuTrakt':
+	mrpiracy.mrpiracy().menuTrakt()
+elif modo == 'traktWatchlistFilmes':
+	mrpiracy.mrpiracy().watchlistFilmes()
+elif modo == 'traktWatchlistSeries':
+	mrpiracy.mrpiracy().watchlistSeries()
+elif modo == 'progressoTrakt':
+	mrpiracy.mrpiracy().progressoTrakt()
+elif modo == 'loginTrakt':
+	mrpiracy.mrpiracy().loginTrakt()
 xbmcplugin.endOfDirectory(int(sys.argv[1]))
