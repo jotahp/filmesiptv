@@ -6,7 +6,7 @@
         <setting id="password" type="text" label="Password" default="" option="hidden" enable="!eq(-1,false)"/>
         <setting type="sep" />
         <setting label="Trakt:" type="lsep" />
-        <setting id="utilizadorTrakt" type="action" label="Utilizador" option="close" action="RunPlugin(plugin://plugin.video.mrpiracy/?mode=loginTrakt&url=necessario)" />
+        <setting id="utilizadorTrakt" type="action" label="Utilizador" option="close" action="RunPlugin(plugin://plugin.video.mrpiracy/?modo=loginTrakt)" />
     		<setting id="tokenTrakt" type="text" option="hidden" visible="false" label="" default="" />
     		<setting id="refreshTrakt" type="text" option="hidden" visible="false" label="" default="" />
         <setting id="tokenMrpiracy" type="text" option="hidden" visible="false" label="" default="" />
