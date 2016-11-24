@@ -1,3 +1,7 @@
+v0.4.3(24/11/2016)
+- fix Login
+- titulo a vermelho se ja marcado visto no Trakt
+
 v0.4.2(21/11/2016)
 - fix Login Trakt
 

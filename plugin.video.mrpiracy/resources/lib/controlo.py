@@ -1,7 +1,7 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
 
-import os,xbmc,xbmcaddon,xbmcplugin,xbmcgui,xbmcvfs,sys,urllib,urllib2,unicodedata,re,urlparse,json
+import os,xbmc,xbmcaddon,xbmcplugin,xbmcgui,xbmcvfs,sys,urllib,urllib2,unicodedata,re,urlparse,json,base64
 from datetime import datetime
 
 from t0mm0.common.addon import Addon
@@ -147,21 +147,37 @@ def abrir_url(url, post=None, header=None, code=False, erro=False):
 
     link=response.read()
 
-    if 'myapimp.tk' in url:
+    """if 'myapimp.tk' in url:
+        xbmc.log(url)
         coiso = json.loads(link)
         if 'error' in coiso:
             if coiso['error'] == 'access_denied':
+                xbmc.log("REFRESH")
                 headers['Authorization'] = 'Bearer %s' % addon.getSetting('tokenMrpiracy')
                 dados = {'refresh_token': addon.getSetting('refreshMrpiracy'),'grant_type': 'refresh_token', 'client_id': 'kodi', 'client_secret':'pyRmmKK3cbjouoDMLXNtt2eGkyTTAG' }
-                resultado = abrir_url('http://myapimp.tk/api/token/refresh',post=json.dumps(dados), headers=controlo.headers)
+                
+                resultado = abrir_url(base64.urlsafe_b64decode('aHR0cDovL215YXBpbXAudGsvYXBpLw==')+'token/refresh',post=json.dumps(dados), header=headers)
+
                 resultado = json.loads(resultado)
                 addon.setSetting('tokenMrpiracy', resultado['access_token'])
                 addon.setSetting('refreshMrpiracy', resultado['refresh_token'])
                 if post:
-                    return abrir_url(url, post=post, headers=header)
+                    return abrir_url(url, post=post, header=header)
                 else:
-                    return abrir_url(url, headers=header)
-                
+                    return abrir_url(url, header=header)
+            if coiso['error'] == 'invalid_request' and coiso['error_description'] == 'The refresh token is invalid.':
+                xbmc.log("LOGIN")
+                dados = {'username': addon.getSetting('email'), 'password': addon.getSetting('password'),'grant_type': 'password', 'client_id': 'kodi', 'client_secret':'pyRmmKK3cbjouoDMLXNtt2eGkyTTAG' }
+                resultado = abrir_url(base64.urlsafe_b64decode('aHR0cDovL215YXBpbXAudGsvYXBpLw==')+'login',post=json.dumps(dados), header=headers)
+                resultado = json.loads(resultado)
+                addon.setSetting('tokenMrpiracy', resultado['access_token'])
+                addon.setSetting('refreshMrpiracy', resultado['refresh_token'])
+                if post:
+                    return abrir_url(url, post=post, header=header)
+                else:
+                    return abrir_url(url, header=header)
+
+    """
     if 'judicial' in link:
         return 'DNS'
     if code:
