@@ -95,7 +95,7 @@ def addVideo(name,url,modo,iconimage,visto,tipo,temporada,episodio,infoLabels,po
     
 
     if visto == True:
-        menu.append(('Marcar como não visto', 'XBMC.RunPlugin(%s?modo=marcar-visto&url=%s)' % (sys.argv[0], urllib.quote_plus(url))))
+        menu.append(('Marcar como não visto', 'XBMC.RunPlugin(%s?modo=marcar-n-visto&url=%s)' % (sys.argv[0], urllib.quote_plus(url))))
         overlay = 7
         playcount = 1
     elif visto == False:

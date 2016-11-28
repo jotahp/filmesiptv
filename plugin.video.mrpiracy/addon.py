@@ -60,6 +60,8 @@ elif modo == 'player':
 	mrpiracy.mrpiracy().player(url)
 elif modo == 'marcar-visto':
 	mrpiracy.mrpiracy().marcarVisto(url)
+elif modo == 'marcar-n-visto':
+	mrpiracy.mrpiracy().marcarNaoVisto(url)
 elif modo == 'download':
 	mrpiracy.mrpiracy().download(url)
 elif modo == 'menuTrakt':

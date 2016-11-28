@@ -432,15 +432,19 @@ def marknotwatchedFilmeTrakt(imdb):
 
 def markwatchedEpisodioTrakt(imdb, temporada, episodio):
     #temporada, episodio = int('%01d' % int(temporada)), int('%01d' % int(episodio))
-    tvdb = Database.selectTVDBEpisodioDB(imdb, temporada, episodio)
+    #tvdb = Database.selectTVDBEpisodioDB(imdb, temporada, episodio)
     #return getTrakt('/sync/history', post={"shows": [{"seasons": [{"episodes": [{"number": episodio}], "number": temporada}], "ids": {"tvdb": tvdb}}]})
-    coiso =  getTrakt(__TRAKT_API__+'/sync/history', post={ "episodes": [ { "ids": { "tvdb": int(tvdb[0]) } } ] })
-    print coiso
+    #coiso =  getTrakt(__TRAKT_API__+'/sync/history', post={ "episodes": [ { "ids": { "tvdb": int(tvdb[0]) } } ] })
+    if not imdb.startswith('tt'): imdb = 'tt' + imdb
+
+    post = {"shows": [{"ids": {"imdb": imdb},"seasons": [{"number": int(temporada),"episodes": [{"number": int(episodio)}]}]}]}
+    coiso = getTrakt(__TRAKT_API__+'/sync/history', post=post)
 
 def marknotwatchedEpisodioTrakt(imdb, temporada, episodio):
     #temporada, episodio = int('%01d' % int(temporada)), int('%01d' % int(episodio))
-    tvdb = Database.selectTVDBEpisodioDB(imdb, temporada, episodio)
+    #tvdb = Database.selectTVDBEpisodioDB(imdb, temporada, episodio)
     #{"episodes": [{"ids": {"tvdb": tvdb[0]}}]}
     #return getTrakt('/sync/history/remove', post={"shows": [{"seasons": [{"episodes": [{"number": episodio}], "number": temporada}], "ids": {"tvdb": tvdb}}]})
-    coiso =  getTrakt(__TRAKT_API__+'/sync/history/remove', post={"episodes": [{"ids": {"tvdb": int(tvdb[0])}}]})
-    print coiso
+    if not imdb.startswith('tt'): imdb = 'tt' + imdb
+    post = {"shows": [{"ids": {"imdb": imdb},"seasons": [{"number": int(temporada),"episodes": [{"number": int(episodio)}]}]}]}
+    coiso =  getTrakt(__TRAKT_API__+'/sync/history/remove', post=post)

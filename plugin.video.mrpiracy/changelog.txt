@@ -1,3 +1,9 @@
+v0.4.4(27/11/2016)
+- Nome a azul se visto no Trakt, Branco se visto no site (em caso de ja visto)
+- Sigla PT ou BR caso seja filme/serie em Portugues ou Brasileiro
+- Correcao de marcar visto no site
+- Marcar visto Trakt
+
 v0.4.3(24/11/2016)
 - fix Login
 - titulo a vermelho se ja marcado visto no Trakt

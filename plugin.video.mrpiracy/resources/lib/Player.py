@@ -15,6 +15,7 @@ import json
 import Trakt
 import Database
 from t0mm0.common.net import Net
+import mrpiracy
 
 import controlo
 
@@ -96,20 +97,38 @@ class Player(xbmc.Player):
         links = self.url.split('/')
         if 'filme' in url:
             id_video = links[-1]
+            resultado = controlo.abrir_url(url, header=controlo.headers)
+            if resultado == 'DNS':
+                controlo.alerta('MrPiracy', 'Tem de alterar os DNS para poder usufruir do addon')
+                return False
+            resultado = json.loads(resultado)
+            imdb = resultado['IMBD']
             post = {'id_filme': id_video}
             url = self.API_SITE+'filmes/marcar-visto'
             tipo = 0
         elif 'serie' in url:
-            id_video = links[5]
-            temporada = links[7]
-            episodio = links[-1]
+            resultado = controlo.abrir_url(url, header=controlo.headers)
+            if resultado == 'DNS':
+                controlo.alerta('MrPiracy', 'Tem de alterar os DNS para poder usufruir do addon')
+                return False
+            resultado = json.loads(resultado)
+            imdb = resultado['imdbSerie']
+            id_video = resultado['id_serie']
+            temporada = resultado['temporada']
+            episodio = resultado['episodio']
             post = {'id_serie': id_video, 'temporada': temporada, 'episodio':episodio}
             url = self.API_SITE+'series/marcar-visto'
             tipo = 1
         elif 'anime' in url:
-            id_video = links[5]
-            temporada = links[7]
-            episodio = links[-1]
+            resultado = controlo.abrir_url(url, header=controlo.headers)
+            if resultado == 'DNS':
+                controlo.alerta('MrPiracy', 'Tem de alterar os DNS para poder usufruir do addon')
+                return False
+            resultado = json.loads(resultado)
+            imdb = resultado['imdbSerie']
+            id_video = resultado['id_serie']
+            temporada = resultado['temporada']
+            episodio = resultado['episodio']
             post = {'id_anime': id_video, 'temporada': temporada, 'episodio':episodio}
             url = self.API_SITE+'animes/marcar-visto'
             tipo = 2
@@ -120,7 +139,21 @@ class Player(xbmc.Player):
             return False
         
         resultado = json.loads(resultado)
-        
+        if Trakt.loggedIn():
+            if tipo == 2 or tipo == 1:
+                if '/' in episodio:
+                    ep = episodio.split('/')
+                    Trakt.markwatchedEpisodioTrakt(imdb, temporada, ep[0])
+                    Trakt.markwatchedEpisodioTrakt(imdb, temporada, ep[1])
+                elif 'e' in episodio:
+                    ep = episodio.split('e')
+                    Trakt.markwatchedEpisodioTrakt(imdb, temporada, ep[0])
+                    Trakt.markwatchedEpisodioTrakt(imdb, temporada, ep[1])
+                else:
+                    Trakt.markwatchedEpisodioTrakt(imdb, temporada, episodio)
+            elif tipo == 0:
+                Trakt.markwatchedFilmeTrakt(imdb)
+            mrpiracy.mrpiracy().getTrakt()
         if resultado['codigo'] == 200:
             xbmc.executebuiltin("XBMC.Notification(MrPiracy,"+"Marcado como visto"+","+"6000"+","+ os.path.join(controlo.addonFolder,'icon.png')+")")
             xbmc.executebuiltin("Container.Refresh")
