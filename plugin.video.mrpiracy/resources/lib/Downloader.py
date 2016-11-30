@@ -10,29 +10,30 @@ class Downloader:
             pass
 
     def download(self,path,url,name):
-            if os.path.isfile(path) is True:
-                    while os.path.exists(path):
-                            try: os.remove(path); break
-                            except: pass
+        if os.path.isfile(path) is True:
+            xbmc.log("SIM")
+            while os.path.exists(path):
+                try: os.remove(path); break
+                except: pass
 
-            dp = xbmcgui.DialogProgress()
-            dp.create('MrPiracy.win Downloader')
-            dp.update(0,name)
-            xbmc.sleep(500)
-            start_time = time.time()
+        dp = xbmcgui.DialogProgress()
+        dp.create('MrPiracy Downloader')
+        dp.update(0,name)
+        xbmc.sleep(500)
+        start_time = time.time()
 
-            urllib.URLopener.version = 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10.11; rv:43.0) Gecko/20100101 Firefox/43.0'
+        urllib.URLopener.version = 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10.11; rv:43.0) Gecko/20100101 Firefox/43.0'
 
-            try:
-                urllib.urlretrieve(url, path, lambda nb, bs, fs: self.dialogdown(name,nb, bs, fs, dp, start_time))
-                dp.close()
-                return True
-            except:
-                while os.path.exists(path):
-                        try: os.remove(path); break
-                        except: pass
-                dp.close()
-                return False
+        try:
+            urllib.urlretrieve(url, path, lambda nb, bs, fs: self.dialogdown(name,nb, bs, fs, dp, start_time))
+            dp.close()
+            return True
+        except:
+            while os.path.exists(path):
+                    try: os.remove(path); break
+                    except: pass
+            dp.close()
+            return False
 
     def dialogdown(self,name,numblocks, blocksize, filesize, dp, start_time):
         try:
@@ -56,5 +57,5 @@ class Downloader:
             raise StopDownloading('Stopped Downloading')
 
 class StopDownloading(Exception):
-        def __init__(self, value): self.value = value
-        def __str__(self): return repr(self.value)
+    def __init__(self, value): self.value = value
+    def __str__(self): return repr(self.value)

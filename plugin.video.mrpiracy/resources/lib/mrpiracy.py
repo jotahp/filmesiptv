@@ -3,7 +3,7 @@
 
 
 import urlparse,json,zlib,hashlib,time,re,os,sys,xbmc,xbmcgui,xbmcplugin,xbmcvfs,pprint, base64
-
+import unicodedata
 import controlo
 import Player
 import URLResolverMedia
@@ -79,9 +79,9 @@ class mrpiracy:
 		controlo.addDir('Animes por Ano', self.API_SITE+'animes/ano', 'listagemAnos', os.path.join(controlo.artFolder, controlo.skin, 'ano.png'))
 		controlo.addDir('Animes por Genero', self.API_SITE+'animes/categoria', 'listagemGeneros', os.path.join(controlo.artFolder, controlo.skin, 'generos.png'))
 	def login(self):
-		if controlo.addon.getSetting('loggedin') != '':
+		"""if controlo.addon.getSetting('loggedin') != '':
 			xbmc.executebuiltin("XBMC.Notification(MrPiracy, Sessão iniciada: "+controlo.addon.getSetting('loggedin')+", '10000', "+controlo.addonFolder+"/icon.png)")
-			return True
+			return True"""
 		if controlo.addon.getSetting('email') == '' or controlo.addon.getSetting('password') == '':
 			controlo.alerta('MrPiracy', 'Precisa de definir o seu email e password')
 			return False
@@ -1208,19 +1208,40 @@ class mrpiracy:
 	def download(self, url):
 		controlo.headers['Authorization'] = 'Bearer %s' % controlo.addon.getSetting('tokenMrpiracy')
 		links = url.split('/')
+		
 		if 'filme' in url:
 			id_video = links[-1]
+			resultado = controlo.abrir_url(url, header=controlo.headers)
+			if resultado == 'DNS':
+				controlo.alerta('MrPiracy', 'Tem de alterar os DNS para poder usufruir do addon')
+				return False
+			resultado = json.loads(resultado)
+			imdb = resultado['IMBD']
 			tipo = 0
 		elif 'serie' in url:
-			id_video = links[5]
-			temporada = links[7]
-			episodio = links[-1]
+			resultado = controlo.abrir_url(url, header=controlo.headers)
+			if resultado == 'DNS':
+				controlo.alerta('MrPiracy', 'Tem de alterar os DNS para poder usufruir do addon')
+				return False
+			resultado = json.loads(resultado)
+			imdb = resultado['imdbSerie']
+			id_video = resultado['id_serie']
+			temporada = resultado['temporada']
+			episodio = resultado['episodio']
 			tipo = 1
 		elif 'anime' in url:
-			id_video = links[5]
-			temporada = links[7]
-			episodio = links[-1]
+			resultado = controlo.abrir_url(url, header=controlo.headers)
+			if resultado == 'DNS':
+				controlo.alerta('MrPiracy', 'Tem de alterar os DNS para poder usufruir do addon')
+				return False
+			resultado = json.loads(resultado)
+			imdb = resultado['imdbSerie']
+			id_video = resultado['id_serie']
+			temporada = resultado['temporada']
+			episodio = resultado['episodio']
 			tipo = 2
+
+		
 
 		resultado = controlo.abrir_url(url, header=controlo.headers)
 		if resultado == 'DNS':
@@ -1228,50 +1249,52 @@ class mrpiracy:
 			return False
 		
 		resultado = json.loads(resultado)
-
+		legendasOn = False
 		stream, legenda, ext_g = self.getStreamLegenda(resultado)
-
+		
 		folder = xbmc.translatePath(controlo.addon.getSetting('pastaDownloads'))
-
+		if legenda != '':
+			legendasOn = True
 		if tipo > 0:
 			if tipo == 1:
-				resultadoa = controlo.abrir_url(self.API_SITE+'serie/'+id_video, header=controlo.headers)
+				resultadoa = controlo.abrir_url(self.API_SITE+'serie/'+str(id_video), header=controlo.headers)
 			elif tipo == 2:
-				resultadoa = controlo.abrir_url(self.API_SITE+'anime/'+id_video, header=controlo.headers)
+				resultadoa = controlo.abrir_url(self.API_SITE+'anime/'+str(id_video), header=controlo.headers)
 			resultadoa = json.loads(resultadoa)
 			if not xbmcvfs.exists(os.path.join(folder,'series')):
 				xbmcvfs.mkdirs(os.path.join(folder,'series'))
-			if not xbmcvfs.exists(os.path.join(folder,'series',resultadoa['nome_ingles'])):
-				xbmcvfs.mkdirs(os.path.join(folder,'series',resultadoa['nome_ingles']))
-			if not xbmcvfs.exists(os.path.join(folder,'series',resultadoa['nome_ingles'],"Temporada "+str(temporada))):
-				xbmcvfs.mkdirs(os.path.join(folder,'series',resultadoa['nome_ingles'],"Temporada "+str(temporada)))
-			folder = os.path.join(folder, 'series', resultadoa['nome_ingles'], "Temporada", str(temporada))
-			name = "e"+str(episodio)+" - "+self.clean(resultado['nome_episodio'])
+			if not xbmcvfs.exists(os.path.join(folder,'series',self.remove_accents(resultadoa['nome_ingles']))):
+				xbmcvfs.mkdirs(os.path.join(folder,'series',self.remove_accents(resultadoa['nome_ingles'])))
+			if not xbmcvfs.exists(os.path.join(folder,'series',self.remove_accents(resultadoa['nome_ingles']),"Temporada "+str(temporada))):
+				xbmcvfs.mkdirs(os.path.join(folder,'series',self.remove_accents(resultadoa['nome_ingles']),"Temporada "+str(temporada)))
+			folder = os.path.join(folder, 'series', self.remove_accents(resultadoa['nome_ingles']), "Temporada "+str(temporada))
+			name = "e"+str(episodio)+" - "+self.remove_accents(resultado['nome_episodio'])
 		else:
 			if not xbmcvfs.exists(os.path.join(folder,'filmes')):
 				xbmcvfs.mkdirs(os.path.join(folder,'filmes'))
 			folder = os.path.join(folder,'filmes')
-			name = resultado['nome_ingles']
+			name = self.remove_accents(resultado['nome_ingles'])
 
+	
 		streamAux = self.clean(stream.split('/')[-1])
 		extensaoStream = self.clean(streamAux.split('.')[-1])
 
 		if '?mim' in extensaoStream:
 			extensaoStream = re.compile('(.+?)\?mime=').findall(extensaoStream)[0]
 
+
 		if ext_g != 'coiso':
 			extensaoStream = ext_g
 
-		nomeStream = name+'.'+extensaoStream
+		nomeStream = name+'.'+extensaoStream	
 
-		if '.vtt' in legenda:
+		Downloader.Downloader().download(os.path.join(folder.decode("utf-8"), nomeStream), stream, name)
+		
+		if legendasOn:
 			legendaAux = self.clean(legenda.split('/')[-1])
 			extensaoLegenda = self.clean(legendaAux.split('.')[1])
 			nomeLegenda = name+'.'+extensaoLegenda
-			legendasOn = True
-		Downloader.Downloader().download(os.path.join(folder.decode("utf-8"), nomeStream), stream, name)
-		if legendasOn:
-			self.download_legendas(legenda, os.path.join(folder, nomelegenda))
+			self.download_legendas(legenda, os.path.join(folder, nomeLegenda))
 
 	def download_legendas(self,url,path):
 		contents = controlo.abrir_url(url, header=controlo.headers)
@@ -1447,4 +1470,7 @@ class mrpiracy:
 			else:
 				visto=False
 			controlo.addDir(nome+' ('+resultado['ano']+')', self.API_SITE+tipo+'/'+str(resultado['id_video']), 'temporadas', resultado['foto'], tipo='serie', infoLabels=infoLabels,poster=self.SITE+resultado['background'],visto=visto)
-			
+	def remove_accents(self, input_str):
+		input_str = input_str.replace("/", "")
+		nkfd_form = unicodedata.normalize('NFKD', unicode(self.clean(input_str)))
+		return u"".join([c for c in nkfd_form if not unicodedata.combining(c)])

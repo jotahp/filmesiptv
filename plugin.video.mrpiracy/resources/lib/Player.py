@@ -95,9 +95,9 @@ class Player(xbmc.Player):
     def adicionarVistoSite(self):
         controlo.headers['Authorization'] = 'Bearer %s' % controlo.addon.getSetting('tokenMrpiracy')
         links = self.url.split('/')
-        if 'filme' in url:
+        if 'filme' in self.url:
             id_video = links[-1]
-            resultado = controlo.abrir_url(url, header=controlo.headers)
+            resultado = controlo.abrir_url(self.url, header=controlo.headers)
             if resultado == 'DNS':
                 controlo.alerta('MrPiracy', 'Tem de alterar os DNS para poder usufruir do addon')
                 return False
@@ -106,8 +106,8 @@ class Player(xbmc.Player):
             post = {'id_filme': id_video}
             url = self.API_SITE+'filmes/marcar-visto'
             tipo = 0
-        elif 'serie' in url:
-            resultado = controlo.abrir_url(url, header=controlo.headers)
+        elif 'serie' in self.url:
+            resultado = controlo.abrir_url(self.url, header=controlo.headers)
             if resultado == 'DNS':
                 controlo.alerta('MrPiracy', 'Tem de alterar os DNS para poder usufruir do addon')
                 return False
@@ -119,8 +119,8 @@ class Player(xbmc.Player):
             post = {'id_serie': id_video, 'temporada': temporada, 'episodio':episodio}
             url = self.API_SITE+'series/marcar-visto'
             tipo = 1
-        elif 'anime' in url:
-            resultado = controlo.abrir_url(url, header=controlo.headers)
+        elif 'anime' in self.url:
+            resultado = controlo.abrir_url(self.url, header=controlo.headers)
             if resultado == 'DNS':
                 controlo.alerta('MrPiracy', 'Tem de alterar os DNS para poder usufruir do addon')
                 return False
@@ -132,7 +132,6 @@ class Player(xbmc.Player):
             post = {'id_anime': id_video, 'temporada': temporada, 'episodio':episodio}
             url = self.API_SITE+'animes/marcar-visto'
             tipo = 2
-
         resultado = controlo.abrir_url(url, post=json.dumps(post), header=controlo.headers)
         if resultado == 'DNS':
             controlo.alerta('MrPiracy', 'Tem de alterar os DNS para poder usufruir do addon')

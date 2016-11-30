@@ -227,93 +227,92 @@ class OpenLoad():
 			'Referer': url}
 
 	def parserOPENLOADIO(self, urlF):
-		#try:
-		req = urllib2.Request(urlF, headers={'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10.11; rv:43.0) Gecko/20100101 Firefox/43.0'})
-		response = urllib2.urlopen(req)
-		html = response.read()
-		response.close()
-		try: html = html.encode('utf-8')
-		except: pass
+		try:
+			req = urllib2.Request(urlF, headers={'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10.11; rv:43.0) Gecko/20100101 Firefox/43.0'})
+			response = urllib2.urlopen(req)
+			html = response.read()
+			response.close()
+			try: html = html.encode('utf-8')
+			except: pass
 
-		TabUrl = []
-		sPattern = '<span id="([^"]+)">([^<>]+)<\/span>'
-		aResult = self.parse(html, sPattern)
-		if (aResult[0]):
-			TabUrl = aResult[1]
-		else:
-			log("No Encoded Section Found. Deleted?")
-			raise ResolverError('No Encoded Section Found. Deleted?')
-		sPattern = '<script src="\/assets\/js\/video-js\/video\.js\.ol\.js">(.+)*'
-		aResult = self.parse(html, sPattern)
-		if (aResult[0]):
-			sHtmlContent2 = aResult[1][0]
-		code = ''
-		maxboucle = 1
-		sHtmlContent3 = sHtmlContent2
-		while (('#streamurl' not in sHtmlContent3) and (maxboucle > 0)):
-			sHtmlContent3 = self.CheckCpacker(sHtmlContent3)
-			sHtmlContent3 = self.CheckJJDecoder(sHtmlContent3)
-			sHtmlContent3 = self.CheckAADecoder(sHtmlContent3)
-			maxboucle = maxboucle - 1
-		code = sHtmlContent3
-		if not (code):
-			log("No Encoded Section Found. Deleted?")
-			raise ResolverError('No Encoded Section Found. Deleted?')
-		hideenurl = ''
-		Hiddenvar = 'y'
+			TabUrl = []
+			sPattern = '<span id="([^"]+)">([^<>]+)<\/span>'
+			aResult = self.parse(html, sPattern)
+			if (aResult[0]):
+				TabUrl = aResult[1]
+			else:
+				log("No Encoded Section Found. Deleted?")
+				raise ResolverError('No Encoded Section Found. Deleted?')
+			sPattern = '<script src="\/assets\/js\/video-js\/video\.js\.ol\.js">(.+)*'
+			aResult = self.parse(html, sPattern)
+			if (aResult[0]):
+				sHtmlContent2 = aResult[1][0]
+			code = ''
+			maxboucle = 1
+			sHtmlContent3 = sHtmlContent2
+			while (('#streamurl' not in sHtmlContent3) and (maxboucle > 0)):
+				sHtmlContent3 = self.CheckCpacker(sHtmlContent3)
+				sHtmlContent3 = self.CheckJJDecoder(sHtmlContent3)
+				sHtmlContent3 = self.CheckAADecoder(sHtmlContent3)
+				maxboucle = maxboucle - 1
+			code = sHtmlContent3
+			if not (code):
+				log("No Encoded Section Found. Deleted?")
+				raise ResolverError('No Encoded Section Found. Deleted?')
+			hideenurl = ''
+			Hiddenvar = 'y'
 
-		sPattern = 'var j=([a-z])\.charCodeAt'
-		aResult = self.parse(code, sPattern)
-		if (aResult[0]):
-			Hiddenvar = re.search('var j=([a-z])\.charCodeAt', code).group(1)
-		sPattern = 'var ' + Hiddenvar + ' = \$\("#([^"]+)"\)'
-		aResult = self.parse(code, sPattern)
-		if (aResult[0]):
-			for i in TabUrl:
-				if aResult[1][0] == i[0]:
-					hideenurl = i[1]
-		if not(hideenurl):
-			log("No Encoded Section Found. Deleted?")
-			raise ResolverError('No Encoded Section Found. Deleted?')
+			sPattern = 'var j=([a-z])\.charCodeAt'
+			aResult = self.parse(code, sPattern)
+			if (aResult[0]):
+				Hiddenvar = re.search('var j=([a-z])\.charCodeAt', code).group(1)
+			sPattern = 'var ' + Hiddenvar + ' = \$\("#([^"]+)"\)'
+			aResult = self.parse(code, sPattern)
+			if (aResult[0]):
+				for i in TabUrl:
+					if aResult[1][0] == i[0]:
+						hideenurl = i[1]
+			if not(hideenurl):
+				log("No Encoded Section Found. Deleted?")
+				raise ResolverError('No Encoded Section Found. Deleted?')
 
-		string = self.unescape(hideenurl)
-		url = ''
+			string = self.unescape(hideenurl)
+			url = ''
 
-		for c in string:
-			v = ord(c)
-			if v >= 33 and v <= 126:
-				v = ((v+14)%94)+33
-			url = url +chr(v)
-		url = JsParser().ProcessJS(code, url)
-		if not (url):
-			log("Error not url")
-			raise ResolverError('Error not url')
-		api_call = "https://openload.co/stream/" + url + "?mime=true"
-		api_call = self.GetOpenloadUrl(api_call, urlF)
+			for c in string:
+				v = ord(c)
+				if v >= 33 and v <= 126:
+					v = ((v+14)%94)+33
+				url = url +chr(v)
+			url = JsParser().ProcessJS(code, url)
+			if not (url):
+				log("Error not url")
+				raise ResolverError('Error not url')
+			api_call = "https://openload.co/stream/" + url + "?mime=true"
+			api_call = self.GetOpenloadUrl(api_call, urlF)
 
-		if not (api_call):
-			url0 = url[:-1]+chr(ord(url[-1])-val)
-			for i in range(1,3):
-				if i != val:
-					url2 = url0[:-1]+chr(ord(url0[-1])+1)
-					url2 = "https://openload.co/stream/" + url2 + "?mime=true"
-					url3 = self.GetOpenloadUrl(url2, urlF)
-					xbmc.sleep(2000)
-					if (url3):
-						api_call = url3
+			if not (api_call):
+				url0 = url[:-1]+chr(ord(url[-1])-val)
+				for i in range(1,3):
+					if i != val:
+						url2 = url0[:-1]+chr(ord(url0[-1])+1)
+						url2 = "https://openload.co/stream/" + url2 + "?mime=true"
+						url3 = self.GetOpenloadUrl(url2, urlF)
+						xbmc.sleep(2000)
+						if (url3):
+							api_call = url3
 
-		if 'KDA_8nZ2av4/x.mp4' in api_call:
-			raise ResolverError('Openload.co resolve failed')
-		if url == api_call:
-			api_call = ''
-			raise ResolverError('pigeon url : ' + api_call)
-		
-		log(api_call)
-		return api_call
-		"""except Exception as e:
+			if 'KDA_8nZ2av4/x.mp4' in api_call:
+				raise ResolverError('Openload.co resolve failed')
+			if url == api_call:
+				api_call = ''
+				raise ResolverError('pigeon url : ' + api_call)
+			
+			return api_call
+		except Exception as e:
 			self.messageOk('MrPiracy.win', 'Ocorreu um erro a obter o link. Escolha outro servidor.')
 		except ResolverError:
-			self.messageOk('MrPiracy.win', 'Ocorreu um erro a obter o link. Escolha outro servidor.')"""
+			self.messageOk('MrPiracy.win', 'Ocorreu um erro a obter o link. Escolha outro servidor.')
 
 	def getId(self):
 		#return self.url.split('/')[-1]
