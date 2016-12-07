@@ -15,6 +15,7 @@ sys.setdefaultencoding('utf8')
 class mrpiracy:
 
 	def __init__(self):
+		self.API = base64.urlsafe_b64decode('aHR0cDovL215YXBpbXAudGsv')
 		self.API_SITE = base64.urlsafe_b64decode('aHR0cDovL215YXBpbXAudGsvYXBpLw==')
 		self.SITE = base64.urlsafe_b64decode('aHR0cDovL21ycGlyYWN5Lm1sLw==')
 	
@@ -563,13 +564,27 @@ class mrpiracy:
 			
 			controlo.addVideo(pt+br+final+semLegenda+'[COLOR '+cor+'][B]Episodio '+str(i['episodio'])+'[/B][/COLOR] '+nome, self.API_SITE+tipo+'/'+str(i['id_serie'])+'/episodio/'+str(i['id_episodio']), 'player', imagem, visto, 'episodio', i['temporada'], i['episodio'], infoLabels, self.SITE+i['background'])
 	def listagemAnos(self, url):
-		conteudo = controlo.abrir_url(self.SITE+'filmes.php', header=controlo.headers)
-		if conteudo == 'DNS':
-			controlo.alerta('MrPiracy', 'Tem de alterar os DNS para poder usufruir do addon')
-			return False
-		match = re.compile('\?anos=.+?\">\s+<img.+?>\s+(.+?)<\/').findall(conteudo)
-
-		for i in match:
+		anos = [
+			'2016',
+			'2015',
+			'2014',
+			'2013',
+			'2012',
+			'2011',
+			'2010',
+			'2009',
+			'2008',
+			'2007',
+			'2006',
+			'2000-2005',
+			'1990-1999',
+			'1980-1989',
+			'1970-1979',
+			'1960-1969',
+			'1950-1959',
+			'1900-1949'
+		]
+		for i in anos:
 			controlo.addDir(i, url+'/'+i, 'anos', os.path.join(controlo.artFolder, controlo.skin, 'ano.png'))
 	def listagemGeneros(self, url):
 		controlo.headers['Authorization'] = 'Bearer %s' % controlo.addon.getSetting('tokenMrpiracy')
@@ -837,35 +852,82 @@ class mrpiracy:
 		i = 0
 		servidores = []
 		titulos = []
+		nome = ''
 		if resultado['URL'] != '':
 			i+=1
 			servidores.append(resultado['URL'])
-			titulos.append('Servidor #%s' % i)
+			if 'openload' in resultado['URL']:
+				nome = "OpenLoad"
+			elif 'vidzi' in resultado['URL']:
+				nome = 'Vidzi'
+			elif 'google' in resultado['URL'] or 'cloud.mail.ru' in resultado['URL']:
+				nome = 'MrPiracy'
+			elif 'uptostream.com' in resultado['URL']:
+				nome = 'UpToStream'
+			elif 'rapidvideo.com' in resultado['URL']:
+				nome = 'RapidVideo'
+			titulos.append('Servidor #%s: %s' % (i, nome))
 		if resultado['URL2'] != '':
 			i+=1
 			servidores.append(resultado['URL2'])
-			titulos.append('Servidor #%s' % i)
+			if 'openload' in resultado['URL2']:
+				nome = "OpenLoad"
+			elif 'vidzi' in resultado['URL2']:
+				nome = 'Vidzi'
+			elif 'google' in resultado['URL2'] or 'cloud.mail.ru' in resultado['URL2']:
+				nome = 'MrPiracy'
+			elif 'uptostream.com' in resultado['URL2']:
+				nome = 'UpToStream'
+			elif 'rapidvideo.com' in resultado['URL2']:
+				nome = 'RapidVideo'
+			titulos.append('Servidor #%s: %s' % (i, nome))
 		try:
 			if resultado['URL3'] != '':
 				i+=1
 				servidores.append(resultado['URL3'])
-				titulos.append('Servidor #%s' % i)
+				if 'openload' in resultado['URL3']:
+					nome = "OpenLoad"
+				elif 'vidzi' in resultado['URL3']:
+					nome = 'Vidzi'
+				elif 'google' in resultado['URL3'] or 'cloud.mail.ru' in resultado['URL3']:
+					nome = 'MrPiracy'
+				elif 'uptostream.com' in resultado['URL3']:
+					nome = 'UpToStream'
+				elif 'rapidvideo.com' in resultado['URL3']:
+					nome = 'RapidVideo'
+				titulos.append('Servidor #%s: %s' % (i, nome))
 		except:
 			pass
 		try:
 			if resultado['URL4'] != '':
 				i+=1
 				servidores.append(resultado['URL4'])
-				titulos.append('Servidor #%s' % i)
+				if 'openload' in resultado['URL4']:
+					nome = "OpenLoad"
+				elif 'vidzi' in resultado['URL4']:
+					nome = 'Vidzi'
+				elif 'google' in resultado['URL4'] or 'cloud.mail.ru' in resultado['URL4']:
+					nome = 'MrPiracy'
+				elif 'uptostream.com' in resultado['URL4']:
+					nome = 'UpToStream'
+				elif 'rapidvideo.com' in resultado['URL4']:
+					nome = 'RapidVideo'
+				titulos.append('Servidor #%s: %s' % (i, nome))
 		except:
 			pass
 		legenda = ''
-		if '://' in resultado['legenda']:
-			legenda = self.SITE+'subs/%s.srt' % resultado['IMBD']
+
+		if '://' in resultado['legenda'] or resultado['legenda'] == '':
+			legenda = self.API+'subs/%s.srt' % resultado['IMBD']
 		elif resultado['legenda'] != '':
 			if not '.srt' in resultado['legenda']:
 				resultado['legenda'] = resultado['legenda']+'.srt'
-			legenda = self.SITE+'subs/%s' % resultado['legenda']
+			legenda = self.API+'subs/%s' % resultado['legenda']
+		try:
+			if resultado['semlegenda'] == 1:
+				legenda = ''
+		except:
+			pass
 		ext_g = 'coiso'
 		if len(titulos) > 1:
 			servidor = controlo.select('Escolha o servidor', titulos)
@@ -909,6 +971,7 @@ class mrpiracy:
 				stream = rapid.getMediaUrl()
 				legenda = rapid.getLegenda()
 		
+
 		return stream, legenda, ext_g
 
 	def pesquisa(self, url):
@@ -1311,6 +1374,7 @@ class mrpiracy:
 
 		vistos = Database.selectTraktDB()
 		controlo.headers['Authorization'] = 'Bearer %s' % controlo.addon.getSetting('tokenMrpiracy')
+
 		for serie in json.loads(vistos[5]):
 			url = 'https://api-v2launch.trakt.tv/shows/%s/progress/watched?hidden=false&specials=false' % serie["show"]["ids"]["slug"]
 			data = Trakt.getTrakt(url)
@@ -1474,3 +1538,5 @@ class mrpiracy:
 		input_str = input_str.replace("/", "")
 		nkfd_form = unicodedata.normalize('NFKD', unicode(self.clean(input_str)))
 		return u"".join([c for c in nkfd_form if not unicodedata.combining(c)])
+
+	

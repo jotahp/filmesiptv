@@ -1,3 +1,9 @@
+v0.4.6(07/12/2016)
+- Correcao de legendas
+- Correcao de servidores
+- Correcao da listagem de anos
+- Correcao do trailer
+
 v0.4.5(30/11/2016)
 - Correcao de funcao de Download
 

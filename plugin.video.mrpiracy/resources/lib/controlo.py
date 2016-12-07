@@ -2,7 +2,9 @@
 # -*- coding: utf-8 -*-
 
 import os,xbmc,xbmcaddon,xbmcplugin,xbmcgui,xbmcvfs,sys,urllib,urllib2,unicodedata,re,urlparse,json,base64
+import threading
 from datetime import datetime
+
 
 from t0mm0.common.addon import Addon
 
@@ -72,8 +74,8 @@ def addVideo(name,url,modo,iconimage,visto,tipo,temporada,episodio,infoLabels,po
        
         if addon.getSetting('trailer-filmes') == 'true':
             try:
-                idYoutube = urlparse.urlparse(trailer).path.split("=")[-1]
-                linkTrailer = 'plugin://plugin.video.youtube/?path=/root/video&action=play_video&videoid='+idYoutube
+                idYoutube = trailer.split('?v=')[-1].split('/')[-1].split('?')[0].split('&')[0]
+                linkTrailer = 'plugin://plugin.video.youtube/play/?video_id='+idYoutube
             except:
                 linkTrailer = ''
         else:
@@ -185,3 +187,24 @@ def abrir_url(url, post=None, header=None, code=False, erro=False):
 
     response.close()
     return link
+    
+def log(msg, level=xbmc.LOGNOTICE):
+    level = xbmc.LOGNOTICE
+    print('[MRPIRACY]: %s' % (msg))
+
+    try:
+        if isinstance(msg, unicode):
+            msg = msg.encode('utf-8')
+        xbmc.log('[MRPIRACY]: %s' % (msg), level)
+    except Exception as e:
+        try:
+            a=1
+        except: pass 
+
+class Thread(threading.Thread):
+    def __init__(self, target, *args):
+        self._target = target
+        self._args = args
+        threading.Thread.__init__(self)
+    def run(self):
+        self._target(*self._args)
