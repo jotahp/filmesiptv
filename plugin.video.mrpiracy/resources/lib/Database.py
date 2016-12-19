@@ -9,7 +9,13 @@ except:
 
 import xbmcvfs, os, sys, xbmc
 
+__PASTA_TRAKT__ = os.path.join(xbmc.translatePath('special://userdata/addon_data/plugin.video.mrpiracy/trakt/').decode('utf8'))
 __DB_FILE__ = os.path.join(xbmc.translatePath('special://userdata/addon_data/plugin.video.mrpiracy/').decode('utf8'), 'dadosv1.db')
+__PROGRESSO_FILE__ = os.path.join(__PASTA_TRAKT__, 'progresso.mrpiracy')
+__WATCH_FILMES_FILE__ = os.path.join(__PASTA_TRAKT__, 'watch_filmes.mrpiracy')
+__WATCH_SERIES_FILE__ = os.path.join(__PASTA_TRAKT__, 'watch_series.mrpiracy')
+__FILMES_FILE__ = os.path.join(__PASTA_TRAKT__, 'filmes.mrpiracy')
+__SERIES_FILE__ = os.path.join(__PASTA_TRAKT__, 'series.mrpiracy')
 
 def isExists():
     if not xbmcvfs.exists(__DB_FILE__):
@@ -18,6 +24,25 @@ def isExists():
     else:
         return "DB nao criada"
 
+def escrever_ficheiro(ficheiro, conteudo):
+    f = open(ficheiro, mode="w")
+    f.write(conteudo)
+    f.close()
+def ler_ficheiro(ficheiro):
+    f = open(ficheiro, "r")
+    conteudo =  f.read()
+    f.close()
+    return conteudo
+def criarFicheiros():
+    try:
+        os.makedirs(__PASTA_TRAKT__)
+    except:
+        pass
+    escrever_ficheiro(__PROGRESSO_FILE__, '')
+    escrever_ficheiro(__WATCH_SERIES_FILE__, '')
+    escrever_ficheiro(__WATCH_FILMES_FILE__, '')
+    escrever_ficheiro(__SERIES_FILE__, '')
+    escrever_ficheiro(__FILMES_FILE__, '')
 
 def createDB():
 
@@ -45,6 +70,24 @@ def close(conn):
     conn.close()
 
 def insertTraktDB(filmes, series, watchlistFilmes, watchlistSeries, progresso, data):
+    escrever_ficheiro(__PROGRESSO_FILE__, progresso)
+    escrever_ficheiro(__WATCH_SERIES_FILE__, watchlistSeries)
+    escrever_ficheiro(__WATCH_FILMES_FILE__, watchlistFilmes)
+    escrever_ficheiro(__FILMES_FILE__, filmes)
+    escrever_ficheiro(__SERIES_FILE__, series)
+
+def selectProgresso():
+    return ler_ficheiro(__PROGRESSO_FILE__)
+def selectWatchFilmes():
+    return ler_ficheiro(__WATCH_FILMES_FILE__)
+def selectWatchSeries():
+    return ler_ficheiro(__WATCH_SERIES_FILE__)
+def selectFilmes():
+    return ler_ficheiro(__FILMES_FILE__)
+def selectSeries():
+    return ler_ficheiro(__SERIES_FILE__)
+
+def insertTraktDB2(filmes, series, watchlistFilmes, watchlistSeries, progresso, data):
     con, dbcursor = connect()
     dbcursor.execute("INSERT OR REPLACE INTO trakt (id, filmes, series, watchlistFilmes, watchlistSeries, progresso, horas) VALUES (?, ?, ?, ?, ?, ?, ?)", (1, filmes, series, watchlistFilmes, watchlistSeries, progresso, data))
     con.commit()

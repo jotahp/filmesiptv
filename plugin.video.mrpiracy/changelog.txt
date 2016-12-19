@@ -1,3 +1,10 @@
+v0.4.7(19/12/2016)
+- adicionado ESPECIAL NATAL
+- correcao erro DNS
+- trakt em ficheiros, em vez de DB
+- adicionado ano de 2017
+- adicionado qualidade 1080p e 4k ao rapidvideo (alguns filmes)
+
 v0.4.6(07/12/2016)
 - Correcao de legendas
 - Correcao de servidores

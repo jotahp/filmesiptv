@@ -60,7 +60,7 @@ def addDir(name,url,modo,iconimage,pagina=False,tipo=False,infoLabels=False,post
     liz=xbmcgui.ListItem(name, iconImage=iconimage, thumbnailImage=iconimage)
     liz.setProperty('fanart_image', fan)
     liz.setInfo( type="Video", infoLabels=infoLabelsAux )
-    liz.addContextMenuItems(menu, replaceItems=True)
+    #liz.addContextMenuItems(menu, replaceItems=True)
     ok=xbmcplugin.addDirectoryItem(handle=int(sys.argv[1]),url=u,listitem=liz,isFolder=True)
     return ok
 
@@ -180,7 +180,7 @@ def abrir_url(url, post=None, header=None, code=False, erro=False):
                     return abrir_url(url, header=header)
 
     """
-    if 'judicial' in link:
+    if 'judicial blblblblbl' in link:
         return 'DNS'
     if code:
         return str(response.code), link

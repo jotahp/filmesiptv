@@ -61,7 +61,7 @@ class RapidVideo():
 		except:
 			sourceCode = self.net.http_GET(self.url, headers=self.headers).content
 
-		sPattern =  '"file":"([^"]+)","label":"([0-9]+)p"'
+		sPattern =  '"file":"([^"]+)","label":"([0-9]+)p.+?"'
 		aResult = self.parse(sourceCode, sPattern)
 		try:
 			self.legenda = re.compile('"file":"([^"]+)","label":".+?","kind":"captions"').findall(sourceCode)[0]
@@ -73,7 +73,10 @@ class RapidVideo():
 			qualidades = []
 			for aEntry in aResult[1]:
 				links.append(aEntry[0])
-				qualidades.append(aEntry[1]+'p')
+				if aEntry[1] == '2160':
+					qualidades.append('4K')
+				else:
+					qualidades.append(aEntry[1]+'p')
 
 			if len(links) == 1:
 				videoUrl = links[0]

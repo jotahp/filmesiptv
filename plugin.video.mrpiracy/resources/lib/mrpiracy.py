@@ -27,9 +27,11 @@ class mrpiracy:
 
 	def menu(self):
 		login = self.login()
-		database = Database.isExists()
+		database = Database.criarFicheiros()
 
 		if login:
+			controlo.addDir('[B][COLOR white]ESPECIAL[/COLOR] [COLOR red]NATAL[/COLOR][/B]', self.API_SITE+'filmes/categoria/30', 'categorias', os.path.join(controlo.artFolder, controlo.skin, 'natal.png'))
+			controlo.addDir('', '', '', os.path.join(controlo.artFolder, controlo.skin, 'nada.png'))
 			controlo.addDir('Filmes', self.API_SITE+'filmes', 'menuFilmes', os.path.join(controlo.artFolder, controlo.skin, 'filmes.png'))
 			controlo.addDir('Séries', self.API_SITE+'series', 'menuSeries', os.path.join(controlo.artFolder, controlo.skin, 'series.png'))
 			controlo.addDir('Animes', self.API_SITE+'animes', 'menuAnimes', os.path.join(controlo.artFolder, controlo.skin, 'animes.png'))
@@ -144,7 +146,7 @@ class mrpiracy:
 			controlo.alerta('MrPiracy', 'Tem de alterar os DNS para poder usufruir do addon')
 			return False
 		resultado = json.loads(resultado)
-		vistos = Database.selectTraktDB()
+		vistos = Database.selectFilmes()
 		for i in resultado['data']:
 			categoria = i['categoria1']
 			if i['categoria2'] != '':
@@ -166,7 +168,7 @@ class mrpiracy:
 				
 			else:			
 				if Trakt.loggedIn():
-					for v in json.loads(vistos[1]):
+					for v in json.loads(vistos):
 						if v["movie"]["ids"]["imdb"] is None:
 							continue
 						if v["movie"]["ids"]["imdb"] == i['IMBD']:
@@ -204,7 +206,7 @@ class mrpiracy:
 			controlo.alerta('MrPiracy', 'Tem de alterar os DNS para poder usufruir do addon')
 			return False
 		resultado = json.loads(resultado)
-		vistos = Database.selectTraktDB()
+		vistos = Database.selectFilmes()
 		for i in resultado['data']:
 			categoria = i['categoria1']
 			if i['categoria2'] != '':
@@ -226,7 +228,7 @@ class mrpiracy:
 			
 			else:
 				if Trakt.loggedIn():
-					for v in json.loads(vistos[1]):
+					for v in json.loads(vistos):
 						if v["movie"]["ids"]["imdb"] is None:
 							continue
 						if v["movie"]["ids"]["imdb"] == i['IMBD']:
@@ -263,7 +265,8 @@ class mrpiracy:
 			controlo.alerta('MrPiracy', 'Tem de alterar os DNS para poder usufruir do addon')
 			return False
 		resultadoa = json.loads(resultadoa)
-		vistos = Database.selectTraktDB()
+		vistosF = Database.selectFilmes()
+
 		for i in resultadoa["data"]:
 			if i['tipoVideo'] == 'filme':
 				resultado = controlo.abrir_url(self.API_SITE+'filme/'+str(i['id_video']), header=controlo.headers)
@@ -288,7 +291,7 @@ class mrpiracy:
 				
 				else:			
 					if Trakt.loggedIn():
-						for v in json.loads(vistos[1]):
+						for v in json.loads(vistosF):
 							if v["movie"]["ids"]["imdb"] is None:
 								continue
 							if v["movie"]["ids"]["imdb"] == resultado['IMBD']:
@@ -367,7 +370,7 @@ class mrpiracy:
 			controlo.alerta('MrPiracy', 'Tem de alterar os DNS para poder usufruir do addon')
 			return False
 		resultado = json.loads(resultado)
-		vistos = Database.selectTraktDB()
+		vistos = Database.selectFilmes()
 		for i in resultado['data']:
 			categoria = i['categoria1']
 			if i['categoria2'] != '':
@@ -389,7 +392,7 @@ class mrpiracy:
 			
 			else:			
 				if Trakt.loggedIn():
-					for v in json.loads(vistos[1]):
+					for v in json.loads(vistos):
 						if v["movie"]["ids"]["imdb"] is None:
 							continue
 						if v["movie"]["ids"]["imdb"] == i['IMBD']:
@@ -489,7 +492,7 @@ class mrpiracy:
 		controlo.headers['Authorization'] = 'Bearer %s' % controlo.addon.getSetting('tokenMrpiracy')
 		resultadoS = controlo.abrir_url(self.API_SITE+tipo+'/'+url.split('/')[5], header=controlo.headers)
 		resultadoS = json.loads(resultadoS)
-		vistos = Database.selectTraktDB()
+		vistos = Database.selectSeries()
 		for i in resultado['data']:
 			if i['URL'] == '' and i['URL2'] == '':
 				continue
@@ -530,7 +533,7 @@ class mrpiracy:
 						ep = i['episodio'].split('/')[0]
 					if 'e' in i['episodio']:
 						ep = i['episodio'].split('e')[0]
-					for v in json.loads(vistos[2]):
+					for v in json.loads(vistos):
 						if v["show"]["ids"]["imdb"] is None:
 							visto = False
 							continue
@@ -608,7 +611,7 @@ class mrpiracy:
 			controlo.alerta('MrPiracy', 'Tem de alterar os DNS para poder usufruir do addon')
 			return False
 		resultadoa = json.loads(resultado)
-		vistos = Database.selectTraktDB()
+		vistos = Database.selectFilmes()
 
 		for i in resultadoa["data"]:
 			if 'filme' in url:
@@ -635,7 +638,7 @@ class mrpiracy:
 				
 				else:			
 					if Trakt.loggedIn():
-						for v in json.loads(vistos[1]):
+						for v in json.loads(vistos):
 							if v["movie"]["ids"]["imdb"] is None:
 								continue
 							if v["movie"]["ids"]["imdb"] == i['IMBD']:
@@ -701,7 +704,7 @@ class mrpiracy:
 			controlo.alerta('MrPiracy', 'Tem de alterar os DNS para poder usufruir do addon')
 			return False
 		resultadoa = json.loads(resultado)
-		vistos = Database.selectTraktDB()
+		vistos = Database.selectFilmes()
 		for i in resultadoa["data"]:
 			if 'filme' in url:
 				resultado = controlo.abrir_url(self.API_SITE+'filme/'+str(i['id_video']), header=controlo.headers)
@@ -733,7 +736,7 @@ class mrpiracy:
 				
 				else:			
 					if Trakt.loggedIn():
-						for v in json.loads(vistos[1]):
+						for v in json.loads(vistos):
 							if v["movie"]["ids"]["imdb"] is None:
 								continue
 							if v["movie"]["ids"]["imdb"] == i['IMBD']:
@@ -976,7 +979,7 @@ class mrpiracy:
 
 	def pesquisa(self, url):
 		controlo.headers['Authorization'] = 'Bearer %s' % controlo.addon.getSetting('tokenMrpiracy')
-		vistos = Database.selectTraktDB()
+		vistos = Database.selectFilmes()
 		if 'filmes' in url:
 			ficheiro = os.path.join(controlo.pastaDados,'filmes_pesquisa.mrpiracy')
 
@@ -1064,7 +1067,7 @@ class mrpiracy:
 				
 					else:			
 						if Trakt.loggedIn():
-							for v in json.loads(vistos[1]):
+							for v in json.loads(vistos):
 								if v["movie"]["ids"]["imdb"] is None:
 									continue
 								if v["movie"]["ids"]["imdb"] == i['IMBD']:
@@ -1372,10 +1375,10 @@ class mrpiracy:
 		return regex.sub(lambda mo: command[mo.group(0)], text)
 	def progressoTrakt(self):
 
-		vistos = Database.selectTraktDB()
+		vistos = Database.selectProgresso()
 		controlo.headers['Authorization'] = 'Bearer %s' % controlo.addon.getSetting('tokenMrpiracy')
 
-		for serie in json.loads(vistos[5]):
+		for serie in json.loads(vistos):
 			url = 'https://api-v2launch.trakt.tv/shows/%s/progress/watched?hidden=false&specials=false' % serie["show"]["ids"]["slug"]
 			data = Trakt.getTrakt(url)
 			if data == "asd":
@@ -1436,9 +1439,9 @@ class mrpiracy:
 			controlo.addVideo('[B]'+resultado['nomeSerie']+'[/B] '+temporadaNumero+'x'+episodioN+' . '+nome, self.API_SITE+tipo+'/'+str(resultado['id_serie'])+'/temporada/'+str(resultado['temporada'])+'/episodio/'+str(resultado['episodio']), 'player', imagem, False, 'episodio', resultado['temporada'], resultado['episodio'], infoLabels, self.SITE+resultado['background'])
 
 	def watchlistFilmes(self):
-		vistos = Database.selectTraktDB()
+		vistos = Database.selectWatchFilmes()
 		controlo.headers['Authorization'] = 'Bearer %s' % controlo.addon.getSetting('tokenMrpiracy')
-		for f in json.loads(vistos[3]):
+		for f in json.loads(vistos):
 			if f["movie"]["ids"]["imdb"] is None:
 				continue
 			imdb = f["movie"]["ids"]["imdb"]
@@ -1482,9 +1485,9 @@ class mrpiracy:
 		 
 
 	def watchlistSeries(self):
-		vistos = Database.selectTraktDB()
+		vistos = Database.selectWatchSeries()
 		controlo.headers['Authorization'] = 'Bearer %s' % controlo.addon.getSetting('tokenMrpiracy')
-		for s in json.loads(vistos[4]):
+		for s in json.loads(vistos):
 			if s["show"]["ids"]["imdb"] is None:
 				continue
 			imdb = s["show"]["ids"]["imdb"]
