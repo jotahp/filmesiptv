@@ -246,12 +246,12 @@ class OpenLoad():
 			else:
 				log("No Encoded Section Found. Deleted?")
 				raise ResolverError('No Encoded Section Found. Deleted?')
-			sPattern = '<script src="\/assets\/js\/video-js\/video\.js\.ol\.js">(.+)*'
+			sPattern = '<script src="\/assets\/js\/video-js\/video\.js\.ol\.js"(.+)*'
 			aResult = self.parse(html, sPattern)
 			if (aResult[0]):
 				sHtmlContent2 = aResult[1][0]
 			code = ''
-			maxboucle = 1
+			maxboucle = 3
 			sHtmlContent3 = sHtmlContent2
 			while (('window.r' not in sHtmlContent3) and (maxboucle > 0)):
 				sHtmlContent3 = self.CheckCpacker(sHtmlContent3)
@@ -262,9 +262,12 @@ class OpenLoad():
 			if not (code):
 				log("No Encoded Section Found. Deleted?")
 				raise ResolverError('No Encoded Section Found. Deleted?')
+			aResult = self.parse(code, "window.r='([^']+)';")
+			if(aResult[0]):
+				ID = aResult[1][0]
 
 			for i in TabUrl:
-				if i[0].endswith('x') and len(i[1]) > 30:
+				if len(i[1]) > 30:
 					hideenurl = i[1]
 			if not(hideenurl):
 				log("No Encoded Section Found. Deleted?")
@@ -273,11 +276,12 @@ class OpenLoad():
 
 			urlcode = ''
 			ido = hideenurl
-			firstTwoChars = self.parseInt(ido[0:2])
+			dec = self.parseInt(ido[0:3])
+			firstTwoChars = self.parseInt(ido[3:5])
 			urlcode = ''
-			num = 2
+			num = 5
 			while (num < len(ido)):
-				urlcode = urlcode + chr(self.parseInt(ido[num: (num +3)]) - firstTwoChars * self.parseInt(ido[(num + 3):(num+ 3 + 2)]))
+				urlcode = urlcode + chr(self.parseInt(ido[num: (num +3)]) - dec - firstTwoChars * self.parseInt(ido[(num + 3):(num+ 3 + 2)]))
 				num = num + 5
 
 			if not (urlcode):
@@ -395,7 +399,10 @@ class OpenLoad():
 			str2 = aResult[1][0]
 			if not str2.endswith(';'):
 				str2 = str2 + ';'
-			return cPacker().unpack(str2)
+			try:
+				str = cPacker().unpack(str2)
+			except:
+				pass
 		return str
 	def CheckJJDecoder(self, str):
 		sPattern = '([a-z]=.+?\(\)\)\(\);)'
@@ -404,10 +411,11 @@ class OpenLoad():
 			return JJDecoder(aResult[1][0]).decode()
 		return str
 	def CheckAADecoder(self, str):
-		sPattern = '(ﾟωﾟ.+?)<\/script>'
-		aResult = self.parse(str, sPattern)
-		if (aResult[0]):
-			return AADecoder(aResult[1][0]).decode()
+		sPattern = '[>;]\s*(ﾟωﾟ.+?\(\'_\'\);)'
+		aResult = re.search(sPattern, str,re.DOTALL | re.UNICODE)
+		if (aResult):
+			tmp = AADecoder(aResult.group(1)).decode()
+			return str[:aResult.start()] + tmp + str[aResult.end():]			
 		return str
 	def getMediaUrlOld(self):
 

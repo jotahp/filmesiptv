@@ -30,8 +30,8 @@ class mrpiracy:
 		database = Database.criarFicheiros()
 
 		if login:
-			controlo.addDir('[B][COLOR white]ESPECIAL[/COLOR] [COLOR red]NATAL[/COLOR][/B]', self.API_SITE+'filmes/categoria/30', 'categorias', os.path.join(controlo.artFolder, controlo.skin, 'natal.png'))
-			controlo.addDir('', '', '', os.path.join(controlo.artFolder, controlo.skin, 'nada.png'))
+			"""controlo.addDir('[B][COLOR white]ESPECIAL[/COLOR] [COLOR red]NATAL[/COLOR][/B]', self.API_SITE+'filmes/categoria/30', 'categorias', os.path.join(controlo.artFolder, controlo.skin, 'natal.png'))
+			controlo.addDir('', '', '', os.path.join(controlo.artFolder, controlo.skin, 'nada.png'))"""
 			controlo.addDir('Filmes', self.API_SITE+'filmes', 'menuFilmes', os.path.join(controlo.artFolder, controlo.skin, 'filmes.png'))
 			controlo.addDir('Séries', self.API_SITE+'series', 'menuSeries', os.path.join(controlo.artFolder, controlo.skin, 'series.png'))
 			controlo.addDir('Animes', self.API_SITE+'animes', 'menuAnimes', os.path.join(controlo.artFolder, controlo.skin, 'animes.png'))
@@ -568,6 +568,7 @@ class mrpiracy:
 			controlo.addVideo(pt+br+final+semLegenda+'[COLOR '+cor+'][B]Episodio '+str(i['episodio'])+'[/B][/COLOR] '+nome, self.API_SITE+tipo+'/'+str(i['id_serie'])+'/episodio/'+str(i['id_episodio']), 'player', imagem, visto, 'episodio', i['temporada'], i['episodio'], infoLabels, self.SITE+i['background'])
 	def listagemAnos(self, url):
 		anos = [
+			'2017',
 			'2016',
 			'2015',
 			'2014',

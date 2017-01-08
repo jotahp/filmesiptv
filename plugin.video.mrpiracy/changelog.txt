@@ -1,3 +1,7 @@
+v0.4.8(09/01/2017)
+- retirado ESPECIAL NATAL
+- correcao openload
+
 v0.4.7(19/12/2016)
 - adicionado ESPECIAL NATAL
 - correcao erro DNS
