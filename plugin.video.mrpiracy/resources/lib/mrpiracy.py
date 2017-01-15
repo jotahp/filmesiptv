@@ -616,7 +616,7 @@ class mrpiracy:
 				visto = True
 				cor = 'blue'
 
-
+			imagem = ''
 			if i['imagem'] == 1:
 				imagem = self.SITE+'images/capas/'+i['IMBD']+'.jpg'
 			elif i['imagem'] == 0:
@@ -1275,6 +1275,8 @@ class mrpiracy:
 			elif resultado['codigo'] == 204:
 				colocar = 3
 		if Trakt.loggedIn():
+			if 'PT' in imdb:
+				imdb = re.compile('(.+?)PT').findall(imdb)[0]
 			if tipo == 2 or tipo == 1:
 				if '/' in episodio:
 					ep = episodio.split('/')
@@ -1370,7 +1372,8 @@ class mrpiracy:
 			elif resultado['codigo'] == 204:
 				colocar = 3
 		if Trakt.loggedIn():
-
+			if 'PT' in imdb:
+				imdb = re.compile('(.+?)PT').findall(imdb)[0]
 			if tipo == 2 or tipo == 1:
 				if '/' in episodio:
 					ep = episodio.split('/')

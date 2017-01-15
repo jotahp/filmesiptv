@@ -1,3 +1,6 @@
+v0.5.0(15/01/2017)
+- correcao openload 
+
 v0.4.9(15/01/2017)
 - correcao openload
 - opcao nas definicoes para marcar visto localmente ou no site, ou em ambos

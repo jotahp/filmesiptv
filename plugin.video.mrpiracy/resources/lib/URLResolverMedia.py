@@ -280,16 +280,14 @@ class OpenLoad():
 			for fs in [-1, 1]:
 				for fe in [-1, 1]:
 					try:
-						s = self.parseInt(id[0:3]) * fs
-						e = self.parseInt(id[3:5]) * fe
+						s = self.parseInt(ido[0:3]) * fs
+						e = self.parseInt(ido[3:5]) * fe
 
 						urlcode = ''
 						num = 5
-						while (num < len(id)):
-							urlcode = urlcode + chr(self.parseInt(id[num:(num + 3)]) - s - e * self.parseInt(id[(num+3): (num+3+2)]))
+						while (num < len(ido)):
+							urlcode = urlcode + chr(self.parseInt(ido[num:(num + 3)]) - s - e * self.parseInt(ido[(num+3): (num+3+2)]))
 							num = num + 5
-
-						print("erro not url: "+urlcode)
 
 						if re.compile('~[0-9]{10}~').search(urlcode):
 							ok = True
