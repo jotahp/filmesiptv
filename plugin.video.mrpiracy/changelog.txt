@@ -1,3 +1,8 @@
+v0.4.9(15/01/2017)
+- correcao openload
+- opcao nas definicoes para marcar visto localmente ou no site, ou em ambos
+- opcao nas definicoes para o tipo de vista
+
 v0.4.8(09/01/2017)
 - retirado ESPECIAL NATAL
 - correcao openload

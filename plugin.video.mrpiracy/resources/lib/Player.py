@@ -95,6 +95,8 @@ class Player(xbmc.Player):
     def adicionarVistoSite(self):
         controlo.headers['Authorization'] = 'Bearer %s' % controlo.addon.getSetting('tokenMrpiracy')
         links = self.url.split('/')
+        opcao = controlo.addon.getSetting('marcarVisto')
+        colocar = 0
         if 'filme' in self.url:
             id_video = links[-1]
             resultado = controlo.abrir_url(self.url, header=controlo.headers)
@@ -114,8 +116,8 @@ class Player(xbmc.Player):
             resultado = json.loads(resultado)
             imdb = resultado['imdbSerie']
             id_video = resultado['id_serie']
-            temporada = resultado['temporada']
-            episodio = resultado['episodio']
+            temporadas = resultado['temporada']
+            episodios = resultado['episodio']
             post = {'id_serie': id_video, 'temporada': temporada, 'episodio':episodio}
             url = self.API_SITE+'series/marcar-visto'
             tipo = 1
@@ -127,17 +129,43 @@ class Player(xbmc.Player):
             resultado = json.loads(resultado)
             imdb = resultado['imdbSerie']
             id_video = resultado['id_serie']
-            temporada = resultado['temporada']
-            episodio = resultado['episodio']
+            temporadas = resultado['temporada']
+            episodios = resultado['episodio']
             post = {'id_anime': id_video, 'temporada': temporada, 'episodio':episodio}
             url = self.API_SITE+'animes/marcar-visto'
             tipo = 2
-        resultado = controlo.abrir_url(url, post=json.dumps(post), header=controlo.headers)
-        if resultado == 'DNS':
-            controlo.alerta('MrPiracy', 'Tem de alterar os DNS para poder usufruir do addon')
-            return False
-        
-        resultado = json.loads(resultado)
+        if opcao == '0' or opcao == '2': 
+            pastaVisto=os.path.join(self.pastaData,'vistos')
+            try:
+                os.makedirs(pastaVisto)
+            except:
+                pass
+
+            if tipo == 1 or tipo == 2:
+                ficheiro = os.path.join(pastaVisto, str(id_video)+'_S'+str(temporadas)+'x'+str(episodios)+'.mrpiracy')
+            elif tipo == 0:
+                ficheiro = os.path.join(pastaVisto, str(id_video)+'.mrpiracy')
+
+
+            if not os.path.exists(ficheiro):
+                f = open(ficheiro, 'w')
+                f.write('')
+                f.close()
+            colocar = 1
+
+        if opcao == '1' or opcao == '2': 
+            resultado = controlo.abrir_url(url, post=json.dumps(post), header=controlo.headers)
+            if resultado == 'DNS':
+                controlo.alerta('MrPiracy', 'Tem de alterar os DNS para poder usufruir do addon')
+                return False
+            
+            resultado = json.loads(resultado)
+            if resultado['codigo'] == 200:
+                colocar = 1
+            if resultado['codigo'] == 201:
+                colocar = 2
+            elif resultado['codigo'] == 204:
+                colocar = 3
         if Trakt.loggedIn():
             if tipo == 2 or tipo == 1:
                 if '/' in episodio:
@@ -153,13 +181,13 @@ class Player(xbmc.Player):
             elif tipo == 0:
                 Trakt.markwatchedFilmeTrakt(imdb)
             mrpiracy.mrpiracy().getTrakt()
-        if resultado['codigo'] == 200:
+        if colocar == 1:
             xbmc.executebuiltin("XBMC.Notification(MrPiracy,"+"Marcado como visto"+","+"6000"+","+ os.path.join(controlo.addonFolder,'icon.png')+")")
             xbmc.executebuiltin("Container.Refresh")
-        if resultado['codigo'] == 201:
+        if colocar == 2:
             xbmc.executebuiltin("XBMC.Notification(MrPiracy,"+"Marcado como não visto"+","+"6000"+","+ os.path.join(controlo.addonFolder,'icon.png')+")")
             xbmc.executebuiltin("Container.Refresh")
-        elif resultado['codigo'] == 204:
+        elif colocar == 3:
             controlo.alerta('MrPiracy', 'Ocorreu um erro ao marcar como visto')
 
     def onPlayBackEnded(self):

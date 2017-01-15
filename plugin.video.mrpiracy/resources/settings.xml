@@ -1,9 +1,11 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <settings>
     <category label="Definições Gerais">
-        <setting label="Conta MrPiracy.win:" type="lsep" />
+        <setting label="Conta MrPiracy:" type="lsep" />
         <setting id="email" type="text" label="Email" default=""/>
         <setting id="password" type="text" label="Password" default="" option="hidden" enable="!eq(-1,false)"/>
+        <setting type="sep" />
+        <setting id="marcarVisto" type="enum" label="Marcar como Visto" values="Local|Site|Ambos (Site e Local)" default="0"/>
         <setting type="sep" />
         <setting label="Trakt:" type="lsep" />
         <setting id="utilizadorTrakt" type="action" label="Utilizador" option="close" action="RunPlugin(plugin://plugin.video.mrpiracy/?modo=loginTrakt)" />

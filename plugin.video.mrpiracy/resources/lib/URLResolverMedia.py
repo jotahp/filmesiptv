@@ -61,7 +61,7 @@ class RapidVideo():
 		except:
 			sourceCode = self.net.http_GET(self.url, headers=self.headers).content
 
-		sPattern =  '"file":"([^"]+)","label":"([0-9]+)p.+?"'
+		sPattern =  '"file":"([^"]+)","label":"([0-9]+)p.+?'
 		aResult = self.parse(sourceCode, sPattern)
 		try:
 			self.legenda = re.compile('"file":"([^"]+)","label":".+?","kind":"captions"').findall(sourceCode)[0]
@@ -276,14 +276,30 @@ class OpenLoad():
 
 			urlcode = ''
 			ido = hideenurl
-			dec = self.parseInt(ido[0:3])
-			firstTwoChars = self.parseInt(ido[3:5])
-			urlcode = ''
-			num = 5
-			while (num < len(ido)):
-				urlcode = urlcode + chr(self.parseInt(ido[num: (num +3)]) - dec - firstTwoChars * self.parseInt(ido[(num + 3):(num+ 3 + 2)]))
-				num = num + 5
+			ok = False
+			for fs in [-1, 1]:
+				for fe in [-1, 1]:
+					try:
+						s = self.parseInt(id[0:3]) * fs
+						e = self.parseInt(id[3:5]) * fe
 
+						urlcode = ''
+						num = 5
+						while (num < len(id)):
+							urlcode = urlcode + chr(self.parseInt(id[num:(num + 3)]) - s - e * self.parseInt(id[(num+3): (num+3+2)]))
+							num = num + 5
+
+						print("erro not url: "+urlcode)
+
+						if re.compile('~[0-9]{10}~').search(urlcode):
+							ok = True
+							break
+						else:
+							urlcode = ''
+					except Exception:
+						continue
+				if(ok):
+					break
 			if not (urlcode):
 				log("Error not url")
 				raise ResolverError('Error not url')
