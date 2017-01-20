@@ -118,7 +118,7 @@ class Player(xbmc.Player):
             id_video = resultado['id_serie']
             temporadas = resultado['temporada']
             episodios = resultado['episodio']
-            post = {'id_serie': id_video, 'temporada': temporada, 'episodio':episodio}
+            post = {'id_serie': id_video, 'temporada': temporadas, 'episodio':episodios}
             url = self.API_SITE+'series/marcar-visto'
             tipo = 1
         elif 'anime' in self.url:
@@ -131,7 +131,7 @@ class Player(xbmc.Player):
             id_video = resultado['id_serie']
             temporadas = resultado['temporada']
             episodios = resultado['episodio']
-            post = {'id_anime': id_video, 'temporada': temporada, 'episodio':episodio}
+            post = {'id_anime': id_video, 'temporada': temporadas, 'episodio':episodios}
             url = self.API_SITE+'animes/marcar-visto'
             tipo = 2
         if opcao == '0' or opcao == '2': 

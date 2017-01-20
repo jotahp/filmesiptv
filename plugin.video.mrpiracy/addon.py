@@ -16,6 +16,7 @@ except: pass
 try: nome = params.get('nome')
 except: pass
 
+
 if modo == None or modo == 'inicio':
 	mrpiracy.mrpiracy().menu()
 elif modo == 'menuFilmes':
@@ -48,8 +49,16 @@ elif modo == 'conta':
 	mrpiracy.mrpiracy().conta()
 elif modo == 'favoritos':
 	mrpiracy.mrpiracy().favoritos(url)
+elif modo == 'favoritosMenu':
+	mrpiracy.mrpiracy().favoritosMenu()
 elif modo == 'verdepois':
 	mrpiracy.mrpiracy().verdepois(url)
+elif modo == 'verdepoisMenu':
+	mrpiracy.mrpiracy().verdepoisMenu()
+elif modo == 'adicionar-favoritos':
+	mrpiracy.mrpiracy().adicionarFavoritos(url)
+elif modo == 'adicionar-agendar':
+	mrpiracy.mrpiracy().adicionarAgendar(url)
 elif modo == 'notificacoes':
 	mrpiracy.mrpiracy().notificacoes(url)
 elif modo == 'mensagens':

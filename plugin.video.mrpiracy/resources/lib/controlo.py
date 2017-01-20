@@ -23,7 +23,7 @@ pastaDados = Addon(addonInfo("id")).get_profile().decode("utf-8")
 headers = {'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10.11; rv:43.0) Gecko/20100101 Firefox/43.0', 'Accept-Charset': 'utf-8;q=0.7,*;q=0.7', 'Content-Type': 'application/json'}
 dataHoras = datetime.now()
 
-def addDir(name,url,modo,iconimage,pagina=False,tipo=False,infoLabels=False,poster=False,visto=False):
+def addDir(name,url,modo,iconimage,pagina=False,tipo=False,infoLabels=False,poster=False,visto=False, menuO=False):
     menu = []
     if infoLabels: infoLabelsAux = infoLabels
     else: infoLabelsAux = {'Title': name}
@@ -36,12 +36,15 @@ def addDir(name,url,modo,iconimage,pagina=False,tipo=False,infoLabels=False,post
     fan = fanart
     overlay = 6
     playcount = 0
-    if visto == True:
-        menu.append(('Marcar como não visto', 'XBMC.RunPlugin(%s?modo=marcar-visto&url=%s)' % (sys.argv[0], urllib.quote_plus(url))))
-        overlay = 7
-        playcount = 1
-    elif visto == False:
-        menu.append(('Marcar como visto', 'XBMC.RunPlugin(%s?modo=marcar-visto&url=%s)' % (sys.argv[0], urllib.quote_plus(url))))
+    if menuO:
+        menu.append(('Adicionar aos Favoritos', 'XBMC.RunPlugin(%s?modo=adicionar-favoritos&url=%s)' % (sys.argv[0], urllib.quote_plus(url))))
+        menu.append(('Agendar (ver mais tarde)', 'XBMC.RunPlugin(%s?modo=adicionar-agendar&url=%s)' % (sys.argv[0], urllib.quote_plus(url))))
+        if visto == True:
+            menu.append(('Marcar como não visto', 'XBMC.RunPlugin(%s?modo=marcar-visto&url=%s)' % (sys.argv[0], urllib.quote_plus(url))))
+            overlay = 7
+            playcount = 1
+        elif visto == False:
+            menu.append(('Marcar como visto', 'XBMC.RunPlugin(%s?modo=marcar-visto&url=%s)' % (sys.argv[0], urllib.quote_plus(url))))
 
     if tipo == 'filme':
         fan = posterAux
@@ -60,7 +63,7 @@ def addDir(name,url,modo,iconimage,pagina=False,tipo=False,infoLabels=False,post
     liz=xbmcgui.ListItem(name, iconImage=iconimage, thumbnailImage=iconimage)
     liz.setProperty('fanart_image', fan)
     liz.setInfo( type="Video", infoLabels=infoLabelsAux )
-    #liz.addContextMenuItems(menu, replaceItems=True)
+    liz.addContextMenuItems(menu, replaceItems=True)
     ok=xbmcplugin.addDirectoryItem(handle=int(sys.argv[1]),url=u,listitem=liz,isFolder=True)
     return ok
 
@@ -71,7 +74,8 @@ def addVideo(name,url,modo,iconimage,visto,tipo,temporada,episodio,infoLabels,po
     if tipo == 'filme':
         xbmcplugin.setContent(int(sys.argv[1]), 'Movies')
         #visto = checkVisto(url)
-       
+        menu.append(('Adicionar aos Favoritos', 'XBMC.RunPlugin(%s?modo=adicionar-favoritos&url=%s)' % (sys.argv[0], urllib.quote_plus(url))))
+        menu.append(('Agendar (ver mais tarde)', 'XBMC.RunPlugin(%s?modo=adicionar-agendar&url=%s)' % (sys.argv[0], urllib.quote_plus(url))))
         if addon.getSetting('trailer-filmes') == 'true':
             try:
                 idYoutube = trailer.split('?v=')[-1].split('/')[-1].split('?')[0].split('&')[0]

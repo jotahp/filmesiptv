@@ -1,3 +1,8 @@
+v0.5.1(20/01/2017)
+- correcao legendas openload 
+- Separacao dos Favoritos e dos Agendados.
+- opcao para Adicionar aos Favoritos e aos agendados
+
 v0.5.0(15/01/2017)
 - correcao openload 
 
