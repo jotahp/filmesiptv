@@ -168,16 +168,16 @@ class Player(xbmc.Player):
                 colocar = 3
         if Trakt.loggedIn():
             if tipo == 2 or tipo == 1:
-                if '/' in episodio:
+                if '/' in episodios:
                     ep = episodio.split('/')
-                    Trakt.markwatchedEpisodioTrakt(imdb, temporada, ep[0])
-                    Trakt.markwatchedEpisodioTrakt(imdb, temporada, ep[1])
-                elif 'e' in episodio:
+                    Trakt.markwatchedEpisodioTrakt(imdb, temporadas, ep[0])
+                    Trakt.markwatchedEpisodioTrakt(imdb, temporadas, ep[1])
+                elif 'e' in episodios:
                     ep = episodio.split('e')
-                    Trakt.markwatchedEpisodioTrakt(imdb, temporada, ep[0])
-                    Trakt.markwatchedEpisodioTrakt(imdb, temporada, ep[1])
+                    Trakt.markwatchedEpisodioTrakt(imdb, temporadas, ep[0])
+                    Trakt.markwatchedEpisodioTrakt(imdb, temporadas, ep[1])
                 else:
-                    Trakt.markwatchedEpisodioTrakt(imdb, temporada, episodio)
+                    Trakt.markwatchedEpisodioTrakt(imdb, temporadas, episodios)
             elif tipo == 0:
                 Trakt.markwatchedFilmeTrakt(imdb)
             mrpiracy.mrpiracy().getTrakt()

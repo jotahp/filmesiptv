@@ -244,7 +244,7 @@ class OpenLoad():
 			if (aResult[0]):
 				TabUrl = aResult[1]
 			else:
-				log("No Encoded Section Found. Deleted?")
+				#log("No Encoded Section Found. Deleted?")
 				raise ResolverError('No Encoded Section Found. Deleted?')
 			sPattern = '<script src="\/assets\/js\/video-js\/video\.js\.ol\.js"(.+)*'
 			aResult = self.parse(html, sPattern)
@@ -260,7 +260,7 @@ class OpenLoad():
 				maxboucle = maxboucle - 1
 			code = sHtmlContent3
 			if not (code):
-				log("No Encoded Section Found. Deleted?")
+				#log("No Encoded Section Found. Deleted?")
 				raise ResolverError('No Encoded Section Found. Deleted?')
 			aResult = self.parse(code, "window.r='([^']+)';")
 			if(aResult[0]):
@@ -270,34 +270,25 @@ class OpenLoad():
 				if len(i[1]) > 30:
 					hideenurl = i[1]
 			if not(hideenurl):
-				log("No Encoded Section Found. Deleted?")
+				#log("No Encoded Section Found. Deleted?")
 				raise ResolverError('No Encoded Section Found. Deleted?')
 
-
+			
 			urlcode = ''
 			ido = hideenurl
-			ok = False
-			for fs in [-1, 1]:
-				for fe in [-1, 1]:
-					try:
-						s = self.parseInt(ido[0:3]) * fs
-						e = self.parseInt(ido[3:5]) * fe
+			first_two_chars = int(float(ido[0:][:2]))
+			TabCode = {}
+			num = 2
 
-						urlcode = ''
-						num = 5
-						while (num < len(ido)):
-							urlcode = urlcode + chr(self.parseInt(ido[num:(num + 3)]) - s - e * self.parseInt(ido[(num+3): (num+3+2)]))
-							num = num + 5
+			while (num < len(ido)):
+				key = int(float(ido[num + 3:][:2]))
+				TabCode[key] = chr(int(float(ido[num:][:3])) - first_two_chars)
+				num = num + 5
 
-						if re.compile('~[0-9]{10}~').search(urlcode):
-							ok = True
-							break
-						else:
-							urlcode = ''
-					except Exception:
-						continue
-				if(ok):
-					break
+			sorted(TabCode, key=lambda key: TabCode[key])
+			urlcode = ''.join(['%s' % (value) for (key, value) in TabCode.items()])
+			
+			
 			if not (urlcode):
 				log("Error not url")
 				raise ResolverError('Error not url')
@@ -317,8 +308,10 @@ class OpenLoad():
 							api_call = url3
 
 			if 'KDA_8nZ2av4/x.mp4' in api_call:
+				log('Openload.co resolve failed')
 				raise ResolverError('Openload.co resolve failed')
 			if urlcode == api_call:
+				log('pigeon url : ' + api_call)
 				api_call = ''
 				raise ResolverError('pigeon url : ' + api_call)
 			

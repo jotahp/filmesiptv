@@ -30,8 +30,10 @@ class mrpiracy:
 		database = Database.criarFicheiros()
 
 		if login:
-			"""controlo.addDir('[B][COLOR white]ESPECIAL[/COLOR] [COLOR red]NATAL[/COLOR][/B]', self.API_SITE+'filmes/categoria/30', 'categorias', os.path.join(controlo.artFolder, controlo.skin, 'natal.png'))
-			controlo.addDir('', '', '', os.path.join(controlo.artFolder, controlo.skin, 'nada.png'))"""
+			evento = self.getEventos()
+			if evento:
+				controlo.addDir('[B]'+evento+'[/B]', self.API_SITE+'evento/1', 'filmes', os.path.join(controlo.artFolder, controlo.skin, 'filmes.png'))
+				controlo.addDir('', '', '', os.path.join(controlo.artFolder, controlo.skin, 'nada.png'))
 			controlo.addDir('Filmes', self.API_SITE+'filmes', 'menuFilmes', os.path.join(controlo.artFolder, controlo.skin, 'filmes.png'))
 			controlo.addDir('Séries', self.API_SITE+'series', 'menuSeries', os.path.join(controlo.artFolder, controlo.skin, 'series.png'))
 			controlo.addDir('Animes', self.API_SITE+'animes', 'menuAnimes', os.path.join(controlo.artFolder, controlo.skin, 'animes.png'))
@@ -154,6 +156,16 @@ class mrpiracy:
 				controlo.alerta('MrPiracy', 'Não foi possível abrir a página. Por favor tente novamente')
 	        	return False
 
+	def getEventos(self):
+		controlo.headers['Authorization'] = 'Bearer %s' % controlo.addon.getSetting('tokenMrpiracy')
+		resultado = controlo.abrir_url(self.API_SITE+'eventos', header=controlo.headers)
+		resultado = json.loads(resultado)
+		try:
+			if resultado['codigo'] == 204:
+				return False
+		except:
+			pass
+		return resultado['data']['nome']
 	def getNumNotificacoes(self):
 		controlo.headers['Authorization'] = 'Bearer %s' % controlo.addon.getSetting('tokenMrpiracy')
 		resultado = controlo.abrir_url(self.API_SITE+'me', header=controlo.headers)
