@@ -1703,7 +1703,7 @@ class mrpiracy:
 				if resultado['visto'] == 1:
 					visto = True
 			elif opcao == '0' or opcao == '2':
-				visto = self.verificarVistoLocal(i['id_video'])
+				visto = self.verificarVistoLocal(resultado['id_video'])
 			infoLabels = {'Title': resultado['nome_ingles'], 'Year': resultado['ano'], 'Genre': categoria, 'Plot': resultado['descricao_video'], 'Cast':resultado['atores'].split(','), 'Trailer': resultado['trailer'], 'Director': resultado['diretor'], 'Rating': resultado['imdbRating'], 'IMDBNumber': resultado['IMBD'] }
 			
 			try:

@@ -1,3 +1,7 @@
+v0.5.3(25/02/2017)
+- correcao watchlist Filmes Trakt
+- Correcao Openload
+
 v0.5.2(07/02/2017)
 - adicionado eventos (Oscars 2017)
 - Correcao Openload
