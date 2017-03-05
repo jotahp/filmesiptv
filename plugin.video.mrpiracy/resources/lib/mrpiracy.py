@@ -736,6 +736,12 @@ class mrpiracy:
 				imagem = self.API+'images/capas/'+i['imdbSerie']+'.jpg'
 			
 			controlo.addVideo(pt+br+final+semLegenda+'[COLOR '+cor+'][B]Episodio '+str(i['episodio'])+'[/B][/COLOR] '+nome, self.API_SITE+tipo+'/'+str(i['id_serie'])+'/episodio/'+str(i['id_episodio']), 'player', imagem, visto, 'episodio', i['temporada'], i['episodio'], infoLabels, self.SITE+i['background'])
+		current = resultado['meta']['pagination']['current_page']
+		total = resultado['meta']['pagination']['total_pages']
+		try: proximo = resultado['meta']['pagination']['links']['next']
+		except: pass 
+		if current < total:
+			controlo.addDir('Proxima pagina ('+str(current)+'/'+str(total)+')', proximo, 'episodios', os.path.join(controlo.artFolder, controlo.skin, 'proximo.png'))
 		self.vista_episodios()
 		if naoVisto == True:
 			if controlo.addon.getSetting('nao-visto-episodios') == 'true':

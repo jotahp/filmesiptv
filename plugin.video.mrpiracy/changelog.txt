@@ -1,3 +1,6 @@
+v0.5.5(05/03/2017)
+- Paginacao nos episodios, 50 por pagina.
+
 v0.5.4(05/03/2017)
 - Correcao Openload
 - Nova funcionalidade, proximo episodio automatico apos carregamento da temporada. Desactivar nas definicioes se necessario.
