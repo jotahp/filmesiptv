@@ -17,6 +17,7 @@ fanart = os.path.join(addonFolder,'fanart.jpg')
 skin = 'v1'
 alerta = xbmcgui.Dialog().ok
 select = xbmcgui.Dialog().select
+simNao = xbmcgui.Dialog().yesno
 mensagemprogresso = xbmcgui.DialogProgress()
 teclado = xbmc.Keyboard
 pastaDados = Addon(addonInfo("id")).get_profile().decode("utf-8")

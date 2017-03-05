@@ -257,7 +257,7 @@ class mrpiracy:
 				except:
 					nome = i['nome_ingles'].encode('utf-8')
 				if 'http' not in i['foto']:
-					i['foto'] = self.SITE+'images/capas/'+i['foto'].split('/')[-1]
+					i['foto'] = self.API+'images/capas/'+i['foto'].split('/')[-1]
 				
 				infoLabels = {'Title': i['nome_ingles'], 'Year': i['ano'], 'Genre': categoria, 'Plot': i['descricao_video'], 'Cast':i['atores'].split(','), 'Trailer': i['trailer'], 'Director': i['diretor'], 'Rating': i['imdbRating'], 'IMDBNumber': i['IMBD'] }
 				controlo.addVideo('[COLOR '+cor+']'+pt+br+nome+' ('+i['ano']+')[/COLOR]', self.API_SITE+'filme/'+str(i['id_video']), 'player', i['foto'],visto, 'filme', 0, 0, infoLabels, self.SITE+i['background'], trailer=i['trailer'])
@@ -285,7 +285,7 @@ class mrpiracy:
 				except:
 					nome = i['nome_ingles'].encode('utf-8')
 				if 'http' not in i['foto']:
-					i['foto'] = self.SITE+'images/capas/'+i['foto'].split('/')[-1]
+					i['foto'] = self.API+'images/capas/'+i['foto'].split('/')[-1]
 				if tipo == 1:
 					link = 'serie'
 				elif tipo == 2:
@@ -360,7 +360,7 @@ class mrpiracy:
 				except:
 					nome = i['nome_ingles'].encode('utf-8')
 				if 'http' not in i['foto']:
-					i['foto'] = self.SITE+'images/capas/'+i['foto'].split('/')[-1]
+					i['foto'] = self.API+'images/capas/'+i['foto'].split('/')[-1]
 				infoLabels = {'Title': i['nome_ingles'], 'Year': i['ano'], 'Genre': categoria, 'Plot': i['descricao_video'], 'Cast':i['atores'].split(','), 'Trailer': i['trailer'], 'Director': i['diretor'], 'Rating': i['imdbRating'], 'IMDBNumber': i['IMBD'] }
 				controlo.addVideo('[COLOR '+cor+']'+pt+br+nome+' ('+i['ano']+')[/COLOR]', self.API_SITE+'filme/'+str(i['id_video']), 'player', i['foto'],visto, 'filme', 0, 0, infoLabels, self.SITE+i['background'], trailer=i['trailer'])
 				
@@ -387,7 +387,7 @@ class mrpiracy:
 				except:
 					nome = i['nome_ingles'].encode('utf-8')
 				if 'http' not in i['foto']:
-					i['foto'] = self.SITE+'images/capas/'+i['foto'].split('/')[-1]
+					i['foto'] = self.API+'images/capas/'+i['foto'].split('/')[-1]
 				if tipo == 1:
 					link = 'serie'
 				elif tipo == 2:
@@ -458,7 +458,7 @@ class mrpiracy:
 				except:
 					nome = resultado['nome_ingles'].encode('utf-8')
 				if 'http' not in resultado['foto']:
-					resultado['foto'] = self.SITE+'images/capas/'+resultado['foto'].split('/')[-1]
+					resultado['foto'] = self.API+'images/capas/'+resultado['foto'].split('/')[-1]
 		
 				infoLabels = {'Title': resultado['nome_ingles'], 'Year': resultado['ano'], 'Genre': categoria, 'Plot':resultado['descricao_video'], 'Cast':resultado['atores'].split(','), 'Trailer': resultado['trailer'], 'Director': resultado['diretor'], 'Rating': resultado['imdbRating'], 'IMDBNumber': resultado['IMBD'] }
 				controlo.addVideo('[COLOR white]'+i['mensagem']+'[/COLOR]', self.API_SITE+'filme/'+str(resultado['id_video']), 'player', resultado['foto'],visto, 'filme', 0, 0, infoLabels, self.SITE+resultado['background'], trailer=resultado['trailer'])
@@ -483,7 +483,7 @@ class mrpiracy:
 				except:
 					nome = resultado['nome_ingles'].encode('utf-8')
 				if 'http' not in resultado['foto']:
-					resultado['foto'] = self.SITE+'images/capas/'+resultado['foto'].split('/')[-1]
+					resultado['foto'] = self.API+'images/capas/'+resultado['foto'].split('/')[-1]
 		
 				infoLabels = {'Title': resultado['nome_ingles'], 'Year': resultado['ano'], 'Genre': categoria, 'Plot': resultado['descricao_video'], 'Cast':resultado['atores'].split(','), 'Trailer': resultado['trailer'], 'Director': resultado['diretor'], 'Rating': resultado['imdbRating'], 'Code': resultado['IMBD'] }
 				controlo.addDir('[COLOR white]'+i['mensagem']+'[/COLOR]', self.API_SITE+i['tipoVideo']+'/'+str(resultado['id_video']), 'temporadas', resultado['foto'], tipo='serie', infoLabels=infoLabels, poster=self.SITE+resultado['background'])
@@ -566,7 +566,7 @@ class mrpiracy:
 			except:
 				nome = i['nome_ingles'].encode('utf-8')
 			if 'http' not in i['foto']:
-				i['foto'] = self.SITE+'images/capas/'+i['foto'].split('/')[-1]
+				i['foto'] = self.API+'images/capas/'+i['foto'].split('/')[-1]
 			controlo.addVideo('[COLOR '+cor+']'+pt+br+nome+' ('+i['ano']+')[/COLOR]', self.API_SITE+'filme/'+str(i['id_video']), 'player', i['foto'],visto, 'filme', 0, 0, infoLabels, self.SITE+i['background'], trailer=i['trailer'])
 			
 		current = resultado['meta']['pagination']['current_page']
@@ -608,7 +608,7 @@ class mrpiracy:
 			except:
 				nome = i['nome_ingles'].encode('utf-8')
 			if 'http' not in i['foto']:
-				i['foto'] = self.SITE+'images/capas/'+i['foto'].split('/')[-1]
+				i['foto'] = self.API+'images/capas/'+i['foto'].split('/')[-1]
 			if i['visto'] == 1:
 				visto=True
 			else:
@@ -650,6 +650,11 @@ class mrpiracy:
 		resultadoS = json.loads(resultadoS)
 		vistos = Database.selectSeries()
 		opcao = controlo.addon.getSetting('marcarVisto')
+		naoVisto = False
+		numeroParaVer = 0
+		temporadaParaVer = 0
+		serieParaVer = 0
+		episodioParaVer = 0
 		for i in resultado['data']:
 			if i['URL'] == '' and i['URL2'] == '':
 				continue
@@ -716,15 +721,28 @@ class mrpiracy:
 			if vistoe:
 				visto = True
 				cor = 'blue'
+			if visto == False and vistoe == False:
+				if naoVisto == False:
+					numeroParaVer = i['episodio']
+					temporadaParaVer = i['temporada']
+					serieParaVer = i['id_serie']
+					episodioParaVer = i['id_episodio']
+					naoVisto = True
 
 			imagem = ''
 			if i['imagem'] == 1:
-				imagem = self.SITE+'images/series/'+i['IMBD']+'.jpg'
+				imagem = self.API+'images/series/'+i['IMBD']+'.jpg'
 			elif i['imagem'] == 0:
-				imagem = self.SITE+'images/capas/'+i['imdbSerie']+'.jpg'
+				imagem = self.API+'images/capas/'+i['imdbSerie']+'.jpg'
 			
 			controlo.addVideo(pt+br+final+semLegenda+'[COLOR '+cor+'][B]Episodio '+str(i['episodio'])+'[/B][/COLOR] '+nome, self.API_SITE+tipo+'/'+str(i['id_serie'])+'/episodio/'+str(i['id_episodio']), 'player', imagem, visto, 'episodio', i['temporada'], i['episodio'], infoLabels, self.SITE+i['background'])
 		self.vista_episodios()
+		if naoVisto == True:
+			if controlo.addon.getSetting('nao-visto-episodios') == 'true':
+				pergunta = controlo.simNao('MrPiracy', 'Carregar o Episódio #'+str(numeroParaVer)+' da temporada #'+str(temporadaParaVer)+'?')
+				if pergunta:
+					self.player(self.API_SITE+tipo+'/'+str(serieParaVer)+'/episodio/'+str(episodioParaVer))
+		
 	def listagemAnos(self, url):
 		anos = [
 			'2017',
@@ -820,7 +838,7 @@ class mrpiracy:
 				except:
 					nome = resultado['nome_ingles'].encode('utf-8')
 				if 'http' not in resultado['foto']:
-					resultado['foto'] = self.SITE+'images/capas/'+resultado['foto'].split('/')[-1]
+					resultado['foto'] = self.API+'images/capas/'+resultado['foto'].split('/')[-1]
 		
 				infoLabels = {'Title': resultado['nome_ingles'], 'Year': resultado['ano'], 'Genre': categoria, 'Plot':resultado['descricao_video'], 'Cast':resultado['atores'].split(','), 'Trailer': resultado['trailer'], 'Director': resultado['diretor'], 'Rating': resultado['imdbRating'], 'IMDBNumber': resultado['IMBD'] }
 				controlo.addVideo('[COLOR '+cor+']'+pt+br+nome+' ('+i['ano']+')[/COLOR]', self.API_SITE+'filme/'+str(resultado['id_video']), 'player', resultado['foto'],visto, 'filme', 0, 0, infoLabels, self.SITE+resultado['background'], trailer=resultado['trailer'])
@@ -849,7 +867,7 @@ class mrpiracy:
 				except:
 					nome = resultado['nome_ingles'].encode('utf-8')
 				if 'http' not in resultado['foto']:
-					resultado['foto'] = self.SITE+'images/capas/'+resultado['foto'].split('/')[-1]
+					resultado['foto'] = self.API+'images/capas/'+resultado['foto'].split('/')[-1]
 				if resultado['visto'] == 1:
 					visto=True
 				else:
@@ -888,7 +906,7 @@ class mrpiracy:
 				except:
 					nome = resultado['nome_ingles'].encode('utf-8')
 				if 'http' not in resultado['foto']:
-					resultado['foto'] = self.SITE+'images/capas/'+resultado['foto'].split('/')[-1]
+					resultado['foto'] = self.API+'images/capas/'+resultado['foto'].split('/')[-1]
 				pt = ''
 				br = ''
 				if 'Brasileiro' in categoria:
@@ -946,7 +964,7 @@ class mrpiracy:
 				except:
 					nome = resultado['nome_ingles'].encode('utf-8')
 				if 'http' not in resultado['foto']:
-					resultado['foto'] = self.SITE+'images/capas/'+resultado['foto'].split('/')[-1]
+					resultado['foto'] = self.API+'images/capas/'+resultado['foto'].split('/')[-1]
 				if resultado['visto'] == 1:
 					visto=True
 				else:
@@ -1131,6 +1149,9 @@ class mrpiracy:
 			rapid = URLResolverMedia.RapidVideo(servidores[servidor])
 			stream = rapid.getMediaUrl()
 			legenda = rapid.getLegenda()
+
+		if legenda == '':
+			legenda = legendaAux
 		"""else:
 			if 'vidzi' in servidores[0]:
 				vidzi = URLResolverMedia.Vidzi(servidores[0])
@@ -1152,6 +1173,7 @@ class mrpiracy:
 				stream = rapid.getMediaUrl()
 				legenda = rapid.getLegenda()
 		"""
+		controlo.log(legenda)
 		return stream, legenda, ext_g
 
 	def pesquisa(self, url):
@@ -1236,7 +1258,7 @@ class mrpiracy:
 						pt = '[B][COLOR green]P[/COLOR][COLOR red]T[/COLOR]: [/B]'
 					cor = "white"
 					if 'http' not in i['foto']:
-						i['foto'] = self.SITE+'images/capas/'+i['foto'].split('/')[-1]
+						i['foto'] = self.API+'images/capas/'+i['foto'].split('/')[-1]
 					if 'PT' in i['IMBD']:
 						i['IMBD'] = re.compile('(.+?)PT').findall(i['IMBD'])[0]
 						pt = '[B][COLOR green]P[/COLOR][COLOR red]T[/COLOR]: [/B]'
@@ -1286,7 +1308,7 @@ class mrpiracy:
 					except:
 						nome = i['nome_ingles'].encode('utf-8')
 					if 'http' not in i['foto']:
-						i['foto'] = self.SITE+'images/capas/'+i['foto'].split('/')[-1]
+						i['foto'] = self.API+'images/capas/'+i['foto'].split('/')[-1]
 					if tipo == 1:
 						link = 'serie'
 					elif tipo == 2:
@@ -1660,9 +1682,9 @@ class mrpiracy:
 				nome = resultado['nome_episodio'].encode('utf-8')
 			imagem = ''
 			if resultado['imagem'] == 1:
-				imagem = self.SITE+'images/series/'+resultado['IMBD']+'.jpg'
+				imagem = self.API+'images/series/'+resultado['IMBD']+'.jpg'
 			elif resultado['imagem'] == 0:
-				imagem = self.SITE+'images/capas/'+resultado['imdbSerie']+'.jpg'
+				imagem = self.API+'images/capas/'+resultado['imdbSerie']+'.jpg'
 
 			controlo.addVideo('[B]'+resultado['nomeSerie']+'[/B] '+temporadaNumero+'x'+episodioN+' . '+nome, self.API_SITE+tipo+'/'+str(resultado['id_serie'])+'/temporada/'+str(resultado['temporada'])+'/episodio/'+str(resultado['episodio']), 'player', imagem, False, 'episodio', resultado['temporada'], resultado['episodio'], infoLabels, self.SITE+resultado['background'])
 		self.vista_filmesSeries()
@@ -1711,7 +1733,7 @@ class mrpiracy:
 			except:
 				nome = resultado['nome_ingles'].encode('utf-8')
 			if 'http' not in resultado['foto']:
-				resultado['foto'] = self.SITE+'images/capas/'+resultado['foto'].split('/')[-1]
+				resultado['foto'] = self.API+'images/capas/'+resultado['foto'].split('/')[-1]
 			controlo.addVideo(pt+br+nome+' ('+resultado['ano']+')', self.API_SITE+'filme/'+str(resultado['id_video']), 'player', resultado['foto'],visto, 'filme', 0, 0, infoLabels, self.SITE+resultado['background'], trailer=resultado['trailer'])
 		self.vista_filmesSeries()
 
@@ -1762,7 +1784,7 @@ class mrpiracy:
 			except:
 				nome = resultado['nome_ingles'].encode('utf-8')
 			if 'http' not in resultado['foto']:
-				resultado['foto'] = self.SITE+'images/capas/'+resultado['foto'].split('/')[-1]
+				resultado['foto'] = self.API+'images/capas/'+resultado['foto'].split('/')[-1]
 			if resultado['visto'] == 1:
 				visto=True
 			else:

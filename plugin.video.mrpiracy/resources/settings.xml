@@ -16,6 +16,7 @@
         <setting id="loggedin" type="text" option="hidden" visible="false" label="" default="" />
         <setting type="sep" />
         <setting id="trailer-filmes" type="bool" label="Procurar Trailers para Filmes" default="false"/>
+        <setting id="nao-visto-episodios" type="bool" label="Próximo episódio automaticamente?" default="true"/>
     </category>
     <category label="Download">
     	<setting label="Pasta para download:" type="lsep" />

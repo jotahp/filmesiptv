@@ -1,3 +1,7 @@
+v0.5.4(05/03/2017)
+- Correcao Openload
+- Nova funcionalidade, proximo episodio automatico apos carregamento da temporada. Desactivar nas definicioes se necessario.
+
 v0.5.3(25/02/2017)
 - correcao watchlist Filmes Trakt
 - Correcao Openload

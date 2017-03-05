@@ -65,6 +65,7 @@ class RapidVideo():
 		aResult = self.parse(sourceCode, sPattern)
 		try:
 			self.legenda = re.compile('"file":"([^"]+)","label":".+?","kind":"captions"').findall(sourceCode)[0]
+			log(self.legenda)
 		except:
 			self.legenda = ''
 		videoUrl = ''
@@ -229,6 +230,21 @@ class OpenLoad():
 			'Accept-Language': 'en-US,en;q=0.8',
 			'Referer': url}
 
+	#Code updated with code from https://gitlab.com/iptvplayer-for-e2 
+	def decodeK(self, k):
+		d = max(2, ord(k[0]) - 55)
+		e = min(d, len(k) - 12 - 2)
+		t = k[e:e + 12]
+		g = []
+		for h in range(0, len(t), 2):
+			f = t[h:h+2]
+			g.append(int(f, 16))
+		v = k[0:e] + k[e+12:]
+		p = []
+		for h in range(0, len(v), 2):
+			p.append(chr(int(v[h:h + 2], 16) ^ g[(h / 2) % 6]))
+
+		return "".join(p)
 	def parserOPENLOADIO(self, urlF):
 		try:
 			req = urllib2.Request(urlF, headers={'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10.11; rv:43.0) Gecko/20100101 Firefox/43.0'})
@@ -273,41 +289,14 @@ class OpenLoad():
 				#log("No Encoded Section Found. Deleted?")
 				raise ResolverError('No Encoded Section Found. Deleted?')
 
-			
-			urlcode = ''
-			ido = hideenurl
-
-			first_char = int(ido[0])
-			urlcode = []
-			num = 1
-
-			while (num < len(ido)):
-				i = ord(ido[num])
-				key = 0
-				if i <= 90:
-					key = i - 65
-				elif i >= 97:
-					key = 25 + i - 97
-				urlcode.append((key, chr(int(ido[num + 2:num + 5]) // int(ido[num + 1]) - first_char)))
-				num = num + 5
-
-			api_call = "https://openload.co/stream/" + ''.join([value for _, value in sorted(urlcode, key=lambda x: x[0])]) + "?mime=true" 
-
-			if not (api_call):
-				url0 = url[:-1]+chr(ord(url[-1])-val)
-				for i in range(1,3):
-					if i != val:
-						url2 = url0[:-1]+chr(ord(url0[-1])+1)
-						url2 = "https://openload.co/stream/" + url2 + "?mime=true"
-						url3 = self.GetOpenloadUrl(url2, urlF)
-						xbmc.sleep(2000)
-						if (url3):
-							api_call = url3
+			viStr = self.decodeK(hideenurl)
+	  
+			api_call = "https://openload.co/stream/" + viStr + "?mime=true" 
 
 			if 'KDA_8nZ2av4/x.mp4' in api_call:
 				log('Openload.co resolve failed')
 				raise ResolverError('Openload.co resolve failed')
-			if urlcode == api_call:
+			if viStr == api_call:
 				log('pigeon url : ' + api_call)
 				api_call = ''
 				raise ResolverError('pigeon url : ' + api_call)
