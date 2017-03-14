@@ -25,14 +25,14 @@
  </extension>
 </addon>
 
-<addon id="repository.mrpiracy" name="MrPiracy.win Repositório" version="1.0.3" provider-name="MrPiracy.win">
+<addon id="repository.mrpiracy" name="MrPiracy.gq Repositório" version="1.0.3" provider-name="MrPiracy.gq">
 	<extension point="xbmc.addon.repository" name="MrPiracy Repository">
-		<info compressed="false">http://raw.github.com/mrpiracyPT/repository.mrpiracy/master/addons.xml</info>
-		<checksum>http://raw.github.com/mrpiracyPT/repository.mrpiracy/master/addons.xml.md5</checksum>
-		<datadir zip="true">http://raw.github.com/mrpiracyPT/repository.mrpiracy/master/repo/</datadir>
+		<info compressed="false">https://github.com/jotahp/filmesiptv/blob/master/addons.xml</info>
+		<checksum>https://github.com/jotahp/filmesiptv/blob/master/addons.xml.md5</checksum>
+		<datadir zip="true">https://github.com/jotahp/filmesiptv/tree/master/repo/</datadir>
 	</extension>
 	<extension point="xbmc.addon.metadata">
-		<summary>MrPiracy.win Repositório</summary>
+		<summary>MrPiracy.gq Repositório</summary>
 		<description>Addon Description</description>
 		<disclaimer></disclaimer>
 		<platform>all</platform>
